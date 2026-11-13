@@ -138,14 +138,14 @@ footer{margin-top:36px;font-size:11.5px;color:#6E7B75;text-align:center;line-hei
 </nav>
 
 <div class="badge">● FOUNDING 100</div>
-<p class="founding">The first <b>100 members</b> get <b>free Main Cabin access</b>: my real-time trade alerts. Then keep a locked-in founder rate.</p>
+<p class="founding">The Discord is <b>always free</b>. The first <b>100 members</b> also get <b>free Main Cabin access</b> (my real-time trade alerts). When your free months end, you choose: keep Main Cabin at your locked founder rate, or stay in the free Discord at no cost.</p>
 <div class="tiers">
-  <div data-n="1" class="tier t1 open"><span class="who">Members 1–25</span><span class="fr">4 months free</span><span class="then">then $7.99/mo</span></div>
-  <div data-n="2" class="tier t2"><span class="who">Members 26–50</span><span class="fr">3 months free</span><span class="then">then $12.99/mo</span></div>
-  <div data-n="3" class="tier t3"><span class="who">Members 51–75</span><span class="fr">2 months free</span><span class="then">then $17.99/mo</span></div>
-  <div data-n="4" class="tier t4"><span class="who">Members 76–100</span><span class="fr">1 month free</span><span class="then">then $22.99/mo</span></div>
+  <div data-n="1" class="tier t1 open"><span class="who">Members 1–25</span><span class="fr">4 months free</span><span class="then">then optional $7.99/mo</span></div>
+  <div data-n="2" class="tier t2"><span class="who">Members 26–50</span><span class="fr">3 months free</span><span class="then">then optional $12.99/mo</span></div>
+  <div data-n="3" class="tier t3"><span class="who">Members 51–75</span><span class="fr">2 months free</span><span class="then">then optional $17.99/mo</span></div>
+  <div data-n="4" class="tier t4"><span class="who">Members 76–100</span><span class="fr">1 month free</span><span class="then">then optional $22.99/mo</span></div>
 </div>
-<p class="fine">Founder rates stay locked as long as you stay subscribed. After the first 100, the Main Cabin is $40/mo.</p>
+<p class="fine">Main Cabin is the only paid part, and it's optional. Founder rates stay locked as long as you stay subscribed. After the first 100, Main Cabin is $40/mo.</p>
 
 <h2>FREE IN THE DISCORD</h2>
 <section class="free">
@@ -177,7 +177,7 @@ const btn=document.getElementById("join");btn.href="https://discord.gg/"+(open<0
 document.querySelectorAll(".tier").forEach((el,i)=>{el.classList.remove("open","full");let st=el.querySelector(".st");
 if(!st){st=document.createElement("span");st.className="st";el.appendChild(st)}
 if(i<open||open<0){el.classList.add("full");st.textContent="FILLED"}else if(i===open){el.classList.add("open");st.textContent="OPEN NOW"}else{st.textContent=""}});
-if(open<0){const f=document.querySelector(".founding");if(f)f.innerHTML="All 100 founding spots are claimed. The Discord is free to join; the <b>Main Cabin</b> is $40/mo."}
+if(open<0){const f=document.querySelector(".founding");if(f)f.innerHTML="All 100 founding spots are claimed. The Discord is always free to join; <b>Main Cabin</b> alerts are optional at $40/mo."}
 })();
 
 (()=>{const KIT="https://app.kit.com/forms/10184477/subscriptions";
