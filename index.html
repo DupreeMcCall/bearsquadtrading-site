@@ -47,7 +47,10 @@ a.primary .txt small{color:#9FF5C9}
 .tier .who{font-family:Rajdhani,sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
 .tier .fr{font-weight:600;font-size:15px;color:var(--ink)}
 .tier .then{font-size:13px;color:#9FF5C9}
-.tier.t1{border-color:rgba(245,197,66,.55)}.tier.t1 .who{color:#F5C542}
+.tier.open{border-color:rgba(245,197,66,.6)}.tier.open .who{color:#F5C542}
+.tier.full{opacity:.45}.tier.full .fr{text-decoration:line-through}
+.tier .st{font-family:Rajdhani,sans-serif;font-weight:700;font-size:11px;letter-spacing:.12em;margin-top:2px}
+.tier.open .st{color:#F5C542}.tier.full .st{color:var(--mute)}
 .fine{margin-top:12px;text-align:center;font-size:12.5px;color:var(--mute);line-height:1.5;max-width:380px}
 h2{font-family:Rajdhani,sans-serif;font-weight:600;font-size:14px;letter-spacing:.3em;color:var(--mute);margin:34px 0 12px;text-align:center}
 .free{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -87,7 +90,7 @@ footer{margin-top:36px;font-size:11.5px;color:#6E7B75;text-align:center;line-hei
 <p class="tag">Trading &amp; Investing Community.<br>Most traders panic when the market bleeds. <b>We eat.</b></p>
 
 <nav class="links" aria-label="Bear Squad links">
-  <a class="btn primary" href="https://discord.gg/5qwtJXsFR4" target="_blank" rel="noopener">
+  <a id="join" class="btn primary" href="https://discord.gg/5qwtJXsFR4" target="_blank" rel="noopener">
     <span class="ic" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5CFFB0" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3v-3H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="M17 9h3a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1v3l-4-3h-3"/></svg></span>
     <span class="txt">Join the Discord<small>Free · daily game plans, news, trade reviews</small></span>
     <span class="arrow" aria-hidden="true">→</span>
@@ -115,12 +118,12 @@ footer{margin-top:36px;font-size:11.5px;color:#6E7B75;text-align:center;line-hei
 </nav>
 
 <div class="badge">● FOUNDING 100</div>
-<p class="founding">The first <b>100 members</b> get <b>free Main Den access</b>: the live trading room + real-time alerts. Then keep a locked-in founder rate.</p>
+<p class="founding">The first <b>100 members</b> get <b>free Main Den access</b>: my real-time trade alerts. Then keep a locked-in founder rate.</p>
 <div class="tiers">
-  <div class="tier t1"><span class="who">Members 1–25</span><span class="fr">4 months free</span><span class="then">then $7.99/mo</span></div>
-  <div class="tier t2"><span class="who">Members 26–50</span><span class="fr">3 months free</span><span class="then">then $12.99/mo</span></div>
-  <div class="tier t3"><span class="who">Members 51–75</span><span class="fr">2 months free</span><span class="then">then $17.99/mo</span></div>
-  <div class="tier t4"><span class="who">Members 76–100</span><span class="fr">1 month free</span><span class="then">then $22.99/mo</span></div>
+  <div data-n="1" class="tier t1 open"><span class="who">Members 1–25</span><span class="fr">4 months free</span><span class="then">then $7.99/mo</span></div>
+  <div data-n="2" class="tier t2"><span class="who">Members 26–50</span><span class="fr">3 months free</span><span class="then">then $12.99/mo</span></div>
+  <div data-n="3" class="tier t3"><span class="who">Members 51–75</span><span class="fr">2 months free</span><span class="then">then $17.99/mo</span></div>
+  <div data-n="4" class="tier t4"><span class="who">Members 76–100</span><span class="fr">1 month free</span><span class="then">then $22.99/mo</span></div>
 </div>
 <p class="fine">Founder rates stay locked as long as you stay subscribed. After the first 100, the Main Den is $40/mo.</p>
 
@@ -133,6 +136,17 @@ footer{margin-top:36px;font-size:11.5px;color:#6E7B75;text-align:center;line-hei
 </section>
 
 <footer>Educational and entertainment content only. Not financial advice. Trading involves substantial risk of loss.</footer>
+<script>
+(async()=>{const tiers=["5qwtJXsFR4","96FCN3wYQ2","zsybmYr6Am","DbXM6bRWVW"],free="7Kx5b8nyR3";
+const live=async c=>{try{const r=await fetch("https://discord.com/api/v10/invites/"+c);return r.status!==404}catch(e){return true}};
+const res=await Promise.all(tiers.map(live));let open=res.indexOf(true);
+const btn=document.getElementById("join");btn.href="https://discord.gg/"+(open<0?free:tiers[open]);
+document.querySelectorAll(".tier").forEach((el,i)=>{el.classList.remove("open","full");let st=el.querySelector(".st");
+if(!st){st=document.createElement("span");st.className="st";el.appendChild(st)}
+if(i<open||open<0){el.classList.add("full");st.textContent="FILLED"}else if(i===open){el.classList.add("open");st.textContent="OPEN NOW"}else{st.textContent=""}});
+if(open<0){const f=document.querySelector(".founding");if(f)f.innerHTML="All 100 founding spots are claimed. The Discord is free to join; the <b>Main Den</b> is $40/mo."}
+})();
+</script>
 </main>
 </body>
 </html>
