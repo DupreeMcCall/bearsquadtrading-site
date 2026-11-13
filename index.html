@@ -58,6 +58,21 @@ h2{font-family:Rajdhani,sans-serif;font-weight:600;font-size:14px;letter-spacing
 .free strong{display:block;font-size:14px;font-weight:600}
 .free span{font-size:12.5px;color:var(--mute);line-height:1.4}
 .free i{font-style:normal;color:var(--g2);font-family:Rajdhani,sans-serif;font-weight:700;margin-right:6px}
+.gate{position:fixed;inset:0;background:rgba(3,5,5,.82);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.gate.show{display:flex}
+.gate form{width:100%;max-width:400px;background:var(--panel);border:1px solid rgba(31,214,122,.45);border-radius:18px;padding:24px 22px;position:relative}
+.gate h3{font-family:Rajdhani,sans-serif;font-weight:700;font-size:24px;letter-spacing:.06em}
+.gate p.s{color:var(--mute);font-size:13.5px;line-height:1.5;margin:6px 0 16px}
+.gate label.f{display:block;font-family:Rajdhani,sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:10px 0 6px}
+.gate input[type=text],.gate input[type=email]{width:100%;background:#0A0D0C;border:1px solid var(--line);border-radius:10px;color:var(--ink);font:500 16px Inter,sans-serif;padding:12px;outline:none}
+.gate input:focus{border-color:var(--g3)}
+.gate .age{display:flex;gap:10px;align-items:flex-start;margin:14px 0 4px;font-size:13.5px;color:var(--ink);cursor:pointer}
+.gate .age input{margin-top:2px;width:18px;height:18px;accent-color:var(--g2)}
+.gate button.go{width:100%;margin-top:16px;border:0;border-radius:12px;padding:14px;font:700 16px Inter,sans-serif;color:#04130B;background:linear-gradient(180deg,var(--g1),var(--g3));cursor:pointer}
+.gate button.go:disabled{opacity:.6;cursor:default}
+.gate .x{position:absolute;top:12px;right:14px;background:none;border:0;color:var(--mute);font-size:22px;cursor:pointer}
+.gate .err{color:#FF8A95;font-size:13px;margin-top:10px;min-height:1em}
+.gate .fine2{color:#6E7B75;font-size:11.5px;line-height:1.5;margin-top:12px;text-align:center}
 footer{margin-top:36px;font-size:11.5px;color:#6E7B75;text-align:center;line-height:1.6;max-width:380px}
 @media (max-width:360px){h1{font-size:28px}.free{grid-template-columns:1fr}}
 </style>
@@ -93,6 +108,11 @@ footer{margin-top:36px;font-size:11.5px;color:#6E7B75;text-align:center;line-hei
   <a id="join" class="btn primary" href="https://discord.gg/5qwtJXsFR4" target="_blank" rel="noopener">
     <span class="ic" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5CFFB0" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3v-3H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="M17 9h3a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1v3l-4-3h-3"/></svg></span>
     <span class="txt">Join the Discord<small>Free · daily game plans, news, trade reviews</small></span>
+    <span class="arrow" aria-hidden="true">→</span>
+  </a>
+  <a class="btn" href="/calculator/">
+    <span class="ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5CFFB0" stroke-width="1.8" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h2M12 18h4"/></svg></span>
+    <span class="txt">Options Calculator<small>Free · plan your scale-out and runner targets</small></span>
     <span class="arrow" aria-hidden="true">→</span>
   </a>
   <a class="btn" href="https://www.instagram.com/bearsquadtrading/" target="_blank" rel="noopener">
@@ -135,6 +155,19 @@ footer{margin-top:36px;font-size:11.5px;color:#6E7B75;text-align:center;line-hei
   <div><strong><i>04</i>Trade reviews</strong><span>Feedback on your real trades</span></div>
 </section>
 
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateT">
+<form id="gateForm" novalidate>
+<button type="button" class="x" id="gateX" aria-label="Close">×</button>
+<h3 id="gateT">Join the Bear Squad</h3>
+<p class="s">Drop your name and email to get your free Discord invite. Founding members also get free Main Cabin access.</p>
+<label class="f" for="gName">First name</label><input type="text" id="gName" name="fields[first_name]" autocomplete="given-name" required>
+<label class="f" for="gEmail">Email</label><input type="email" id="gEmail" name="email_address" autocomplete="email" required>
+<label class="age"><input type="checkbox" id="gAge" required> I'm 18 or older</label>
+<button class="go" type="submit" id="gGo">Get my Discord invite →</button>
+<div class="err" id="gErr"></div>
+<p class="fine2">We'll email you Bear Squad updates. No spam, unsubscribe anytime. We never sell your info.</p>
+</form>
+</div>
 <footer>Educational and entertainment content only. Not financial advice. Trading involves substantial risk of loss.</footer>
 <script>
 (async()=>{const tiers=["5qwtJXsFR4","96FCN3wYQ2","zsybmYr6Am","DbXM6bRWVW"],free="7Kx5b8nyR3";
@@ -146,6 +179,23 @@ if(!st){st=document.createElement("span");st.className="st";el.appendChild(st)}
 if(i<open||open<0){el.classList.add("full");st.textContent="FILLED"}else if(i===open){el.classList.add("open");st.textContent="OPEN NOW"}else{st.textContent=""}});
 if(open<0){const f=document.querySelector(".founding");if(f)f.innerHTML="All 100 founding spots are claimed. The Discord is free to join; the <b>Main Cabin</b> is $40/mo."}
 })();
+
+(()=>{const KIT="https://app.kit.com/forms/10184477/subscriptions";
+const btn=document.getElementById("join"),gate=document.getElementById("gate"),f=document.getElementById("gateForm"),err=document.getElementById("gErr"),go=document.getElementById("gGo");
+const signed=()=>{try{return localStorage.getItem("bs_joined")==="1"}catch(e){return false}};
+btn.addEventListener("click",e=>{if(signed())return;e.preventDefault();gate.classList.add("show");setTimeout(()=>document.getElementById("gName").focus(),50)});
+document.getElementById("gateX").onclick=()=>gate.classList.remove("show");
+gate.addEventListener("click",e=>{if(e.target===gate)gate.classList.remove("show")});
+f.addEventListener("submit",async e=>{e.preventDefault();err.textContent="";
+const name=document.getElementById("gName").value.trim(),email=document.getElementById("gEmail").value.trim();
+if(!name){err.textContent="Enter your first name.";return}
+if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent="Enter a valid email.";return}
+if(!document.getElementById("gAge").checked){err.textContent="You must be 18 or older to join.";return}
+go.disabled=true;go.textContent="Sending your invite…";
+const fd=new FormData();fd.append("email_address",email);fd.append("fields[first_name]",name);
+try{await fetch(KIT,{method:"POST",body:fd,mode:"no-cors"})}catch(x){}
+try{localStorage.setItem("bs_joined","1")}catch(x){}
+window.location.href=btn.href;});})();
 </script>
 </main>
 </body>
