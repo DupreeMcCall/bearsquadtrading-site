@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Options Calculator · Bear Squad Trading</title>
-<meta name="description" content="Free options scale-out calculator from Bear Squad Trading. Plan your scale and runner targets before you take the trade.">
+<title>Trade Calculator · Bear Squad Trading</title>
+<meta name="description" content="Free options and futures trade calculator from Bear Squad Trading. Plan your stop, scale and runner targets, risk-to-reward and prop-firm contract size before you take the trade.">
 <meta name="theme-color" content="#07090A">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%22100%2090%20400%20450%22%3E%3Crect%20x%3D%22100%22%20y%3D%2290%22%20width%3D%22400%22%20height%3D%22450%22%20fill%3D%22%2307090A%22/%3E%3Cpath%20d%3D%22M300%20182%20L236%20168%20L214%20122%20L172%20114%20L146%20138%20L148%20214%20L110%20300%20L160%20402%20L248%20470%20L300%20522%20L352%20470%20L440%20402%20L490%20300%20L452%20214%20L454%20138%20L428%20114%20L386%20122%20L364%20168%20Z%22%20fill%3D%22none%22%20stroke%3D%22%231FD67A%22%20stroke-width%3D%2222%22/%3E%3Cpolygon%20points%3D%22283%2C306%20317%2C306%20317%2C392%20348%2C392%20300%2C452%20252%2C392%20283%2C392%22%20fill%3D%22%23E8293B%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#07090A;--panel:#0E1211;--line:#1C2622;--g1:#5CFFB0;--g2:#1FD67A;--g3:#12C26A;--red:#E8293B;--ink:#EAF4EE;--mute:#9AA8A1}
+:root{--bg:#07090A;--panel:#0E1211;--line:#1C2622;--g1:#5CFFB0;--g2:#1FD67A;--g3:#12C26A;--red:#E8293B;--ink:#EAF4EE;--mute:#9AA8A1;--gold:#F5C542}
 *{box-sizing:border-box;margin:0}
 html,body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 body{min-height:100vh;display:flex;justify-content:center;padding:28px 18px 56px;
@@ -24,35 +24,53 @@ main{width:100%;max-width:480px}
 .back{color:var(--mute);font-size:13px;text-decoration:none}
 .back:hover{color:var(--ink)}
 h1{font-family:Rajdhani,sans-serif;font-weight:700;font-size:28px;letter-spacing:.06em}
-.lead{color:var(--mute);font-size:14px;line-height:1.5;margin:6px 0 18px}
+.lead{color:var(--mute);font-size:14px;line-height:1.5;margin:6px 0 16px}
+.tabs{display:flex;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:12px}
+.tabs button{flex:1;border:0;background:transparent;color:var(--mute);font:700 15px Rajdhani,sans-serif;letter-spacing:.12em;padding:11px 8px;border-radius:10px;cursor:pointer}
+.tabs button.on{background:rgba(31,214,122,.16);color:var(--g1)}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+.pane{display:none}.pane.on{display:block}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .row.three{grid-template-columns:1fr 1fr 1fr}
 label{display:block;font-family:Rajdhani,sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-bottom:6px}
+label em{font-style:normal;text-transform:none;letter-spacing:0;font-family:Inter,sans-serif;font-weight:400;font-size:11px;color:#6E7B75}
 input{width:100%;background:#0A0D0C;border:1px solid var(--line);border-radius:10px;color:var(--ink);font:500 16px Inter,sans-serif;padding:11px 12px;outline:none}
 input:focus{border-color:var(--g3)}
 input[readonly]{color:var(--mute)}
+input.stop{border-color:rgba(232,41,59,.35)}
+input.stop:focus{border-color:var(--red)}
 .seg{display:flex;background:#0A0D0C;border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
-.seg button{flex:1;border:0;background:transparent;color:var(--mute);font:600 14px Inter,sans-serif;padding:8px 6px;border-radius:8px;cursor:pointer}
+.seg button{flex:1;border:0;background:transparent;color:var(--mute);font:600 14px Inter,sans-serif;padding:8px 4px;border-radius:8px;cursor:pointer}
 .seg button.on{background:rgba(31,214,122,.16);color:var(--g1)}
-.seg.dir button.on[data-v=put]{background:rgba(232,41,59,.16);color:#FF6B78}
+.seg.dir button.on[data-v=put],.seg.dir button.on[data-v=short]{background:rgba(232,41,59,.16);color:#FF6B78}
 .slider{margin:4px 0 14px}
 .slider .lbl{display:flex;justify-content:space-between;align-items:baseline}
 .slider .lbl span{font-family:Rajdhani,sans-serif;font-weight:700;font-size:15px;color:var(--g1)}
 input[type=range]{padding:0;border:0;background:transparent;accent-color:var(--g2);height:28px}
 .reset{background:none;border:0;color:var(--g2);font:500 12px Inter,sans-serif;cursor:pointer;padding:0;margin-top:6px}
 .note{font-size:12px;color:var(--mute);margin-top:6px}
+.sep{border:0;border-top:1px solid var(--line);margin:4px 0 16px}
 .split{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 16px}
 .chip{background:rgba(31,214,122,.1);border:1px solid rgba(31,214,122,.35);color:var(--g1);border-radius:999px;padding:6px 11px;font-size:13px;font-weight:600}
-.chip.run{background:rgba(245,197,66,.08);border-color:rgba(245,197,66,.4);color:#F5C542}
+.chip.run{background:rgba(245,197,66,.08);border-color:rgba(245,197,66,.4);color:var(--gold)}
+.chip.stp{background:rgba(232,41,59,.08);border-color:rgba(232,41,59,.35);color:#FF8A95}
 .arrow{color:var(--mute)}
 .out{border-top:1px solid var(--line);padding-top:14px}
-.line{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;font-size:14px;color:var(--mute)}
-.line b{color:var(--ink);font-weight:600;font-size:15px}
+.line{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:7px 0;font-size:14px;color:var(--mute)}
+.line b{color:var(--ink);font-weight:600;font-size:15px;white-space:nowrap}
+.line b.pos{color:var(--g1)}
+.line b.neg{color:#FF6B78}
 .line.total{border-top:1px dashed var(--line);margin-top:4px;padding-top:12px}
 .line.total span{color:var(--ink);font-weight:600}
-.line.total b{color:var(--g1);font-size:20px;font-family:Rajdhani,sans-serif;font-weight:700}
-.risk{margin-top:12px;font-size:12.5px;color:#FF8A95;background:rgba(232,41,59,.07);border:1px solid rgba(232,41,59,.25);border-radius:10px;padding:10px 12px;line-height:1.45}
+.line.total b{font-size:20px;font-family:Rajdhani,sans-serif;font-weight:700}
+.rr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+.rr div{background:#0A0D0C;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.rr small{display:block;font-family:Rajdhani,sans-serif;font-weight:700;font-size:11px;letter-spacing:.12em;color:var(--mute);text-transform:uppercase}
+.rr strong{display:block;font-family:Rajdhani,sans-serif;font-weight:700;font-size:20px;margin-top:2px}
+.tip{margin-top:12px;font-size:12.5px;line-height:1.45;border-radius:10px;padding:10px 12px}
+.tip.warn{color:#FF8A95;background:rgba(232,41,59,.07);border:1px solid rgba(232,41,59,.25)}
+.tip.good{color:#9FF5C9;background:rgba(31,214,122,.06);border:1px solid rgba(31,214,122,.25)}
+.tip.gold{color:var(--gold);background:rgba(245,197,66,.06);border:1px solid rgba(245,197,66,.25)}
 .empty{color:var(--mute);font-size:13px;text-align:center;padding:10px 0 4px}
 .cta{display:block;margin-top:20px;text-align:center;text-decoration:none;color:var(--ink);background:linear-gradient(180deg,rgba(31,214,122,.16),rgba(31,214,122,.06));border:1px solid rgba(31,214,122,.55);border-radius:14px;padding:14px;font-weight:600}
 .cta small{display:block;color:#9FF5C9;font-weight:400;font-size:12.5px;margin-top:3px}
@@ -69,116 +87,266 @@ footer{margin-top:28px;font-size:11.5px;color:#6E7B75;text-align:center;line-hei
     <a class="back" href="/">← Home</a>
   </div>
 
-  <h1>Options Calculator</h1>
-  <p class="lead">Plan the trade before you take it. Sell part of your position at a first target, let the rest run to a bigger one. Whole contracts only.</p>
+  <h1>Trade Calculator</h1>
+  <p class="lead">Plan the trade before you take it: know your stop, your scale and runner targets, and your risk-to-reward.</p>
 
-  <div class="card">
+  <div class="tabs" role="tablist">
+    <button class="on" data-pane="opt" role="tab">OPTIONS</button>
+    <button data-pane="fut" role="tab">FUTURES</button>
+  </div>
+
+  <!-- ===================== OPTIONS ===================== -->
+  <div class="card pane on" id="opt">
     <div class="row">
       <div><label>Ticker</label>
-        <div class="seg" id="ticker"><button data-v="SPY" class="on">SPY</button><button data-v="QQQ">QQQ</button><button data-v="IWM">IWM</button></div></div>
+        <div class="seg" id="o_ticker"><button data-v="SPY" class="on">SPY</button><button data-v="QQQ">QQQ</button><button data-v="IWM">IWM</button></div></div>
       <div><label>Direction</label>
-        <div class="seg dir" id="dir"><button data-v="call" class="on">Call</button><button data-v="put">Put</button></div></div>
+        <div class="seg dir" id="o_dir"><button data-v="call" class="on">Call</button><button data-v="put">Put</button></div></div>
     </div>
     <div class="row">
       <div><label>Expiry</label>
-        <div class="seg" id="exp"><button data-v="0DTE">0DTE</button><button data-v="1DTE" class="on">1DTE</button></div></div>
-      <div><label for="strike">Strike</label><input id="strike" inputmode="decimal" placeholder="e.g. 520"></div>
+        <div class="seg" id="o_exp"><button data-v="0DTE">0DTE</button><button data-v="1DTE" class="on">1DTE</button></div></div>
+      <div><label for="o_strike">Strike</label><input id="o_strike" inputmode="decimal" placeholder="e.g. 520"></div>
     </div>
     <div class="row">
-      <div><label for="entry">Entry premium</label><input id="entry" inputmode="decimal" placeholder="e.g. 1.85"></div>
-      <div><label for="qty">Contracts</label><input id="qty" inputmode="numeric" value="1"></div>
+      <div><label for="o_entry">Entry premium</label><input id="o_entry" inputmode="decimal" placeholder="e.g. 1.85"></div>
+      <div><label for="o_qty">Contracts</label><input id="o_qty" inputmode="numeric" value="1"></div>
     </div>
-    <div class="row">
-      <div><label for="gain">First target %</label><input id="gain" inputmode="decimal" value="10"></div>
-      <div><label for="runner">Runner target %</label><input id="runner" inputmode="decimal" value="25" placeholder="same as first"></div>
+    <div class="row three">
+      <div><label for="o_stop">Stop % <em>loss</em></label><input class="stop" id="o_stop" inputmode="decimal" value="30"></div>
+      <div><label for="o_gain">Target 1 %</label><input id="o_gain" inputmode="decimal" value="10"></div>
+      <div><label for="o_runner">Runner %</label><input id="o_runner" inputmode="decimal" value="25"></div>
     </div>
 
     <div class="slider">
-      <div class="lbl"><label for="exitPct">Sell at first target</label><span id="exitPctOut">85%</span></div>
-      <input type="range" id="exitPct" min="0" max="100" step="5" value="85">
+      <div class="lbl"><label for="o_exitPct">Sell at target 1</label><span id="o_exitPctOut">85%</span></div>
+      <input type="range" id="o_exitPct" min="0" max="100" step="5" value="85">
     </div>
-
     <div class="row">
-      <div><label for="scaleQty">Scale contracts</label><input id="scaleQty" inputmode="numeric" placeholder="auto"></div>
-      <div><label>Runner contracts</label><input id="runnerQty" readonly tabindex="-1"></div>
+      <div><label for="o_scaleQty">Scale contracts</label><input id="o_scaleQty" inputmode="numeric" placeholder="auto"></div>
+      <div><label>Runner contracts</label><input id="o_runnerQty" readonly tabindex="-1"></div>
     </div>
-    <p class="note" id="overrideNote">Auto from slider. Type a number to override.</p>
-    <button class="reset" id="resetSplit" hidden>↺ Use slider</button>
+    <p class="note" id="o_overrideNote">Auto from slider. Type a number to override.</p>
+    <button class="reset" id="o_resetSplit" hidden>↺ Use slider</button>
 
-    <div class="split" id="split"></div>
-    <div class="out" id="out"><p class="empty">Enter an entry premium and contracts to see your targets.</p></div>
+    <div class="split" id="o_split"></div>
+    <div class="out" id="o_out"></div>
+  </div>
+
+  <!-- ===================== FUTURES ===================== -->
+  <div class="card pane" id="fut">
+    <div class="row">
+      <div><label>Contract</label>
+        <div class="seg" id="f_sym"><button data-v="MNQ" class="on">MNQ</button><button data-v="NQ">NQ</button><button data-v="MES">MES</button><button data-v="ES">ES</button></div></div>
+      <div><label>Direction</label>
+        <div class="seg dir" id="f_dir"><button data-v="long" class="on">Long</button><button data-v="short">Short</button></div></div>
+    </div>
+    <div class="row">
+      <div><label for="f_entry">Entry price <em>optional</em></label><input id="f_entry" inputmode="decimal" placeholder="e.g. 21450.25"></div>
+      <div><label for="f_qty">Contracts</label><input id="f_qty" inputmode="numeric" value="2"></div>
+    </div>
+    <div class="row three">
+      <div><label for="f_stop">Stop <em>pts</em></label><input class="stop" id="f_stop" inputmode="decimal" value="15"></div>
+      <div><label for="f_t1">Target 1 <em>pts</em></label><input id="f_t1" inputmode="decimal" value="20"></div>
+      <div><label for="f_t2">Runner <em>pts</em></label><input id="f_t2" inputmode="decimal" value="30"></div>
+    </div>
+
+    <div class="slider">
+      <div class="lbl"><label for="f_exitPct">Sell at target 1</label><span id="f_exitPctOut">50%</span></div>
+      <input type="range" id="f_exitPct" min="0" max="100" step="5" value="50">
+    </div>
+    <div class="row">
+      <div><label for="f_scaleQty">Scale contracts</label><input id="f_scaleQty" inputmode="numeric" placeholder="auto"></div>
+      <div><label>Runner contracts</label><input id="f_runnerQty" readonly tabindex="-1"></div>
+    </div>
+    <p class="note" id="f_overrideNote">Auto from slider. Type a number to override.</p>
+    <button class="reset" id="f_resetSplit" hidden>↺ Use slider</button>
+
+    <hr class="sep">
+    <div class="row">
+      <div><label for="f_fee">Fees <em>per contract, round trip</em></label><input id="f_fee" inputmode="decimal" placeholder="e.g. 1.24"></div>
+      <div><label for="f_dll">Daily loss limit <em>prop firm</em></label><input id="f_dll" inputmode="decimal" placeholder="e.g. 600"></div>
+    </div>
+
+    <div class="split" id="f_split"></div>
+    <div class="out" id="f_out"></div>
   </div>
 
   <a class="cta" href="/">Join the Bear Squad Discord<small>Free daily game plans, market news and trade reviews</small></a>
-  <footer>Educational tool only. Not financial advice. Options trading involves substantial risk of loss.</footer>
+  <footer>Educational tool only. Not financial advice. Options and futures trading involve substantial risk of loss. Point values: MNQ $2, NQ $20, MES $5, ES $50 per point.</footer>
 </main>
 <script>
-const MULT = 100; // options multiplier
 const $ = id => document.getElementById(id);
-const state = { ticker: "SPY", dir: "call", exp: "1DTE" };
-
-document.querySelectorAll(".seg").forEach(seg => {
-  seg.addEventListener("click", e => {
-    const b = e.target.closest("button"); if (!b) return;
-    seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
-    state[seg.id] = b.dataset.v; render();
-  });
-});
-["strike","entry","qty","gain","runner","exitPct","scaleQty"].forEach(id => $(id).addEventListener("input", render));
-$("resetSplit").addEventListener("click", () => { $("scaleQty").value = ""; render(); });
-
+const num = (id, d = 0) => { const v = parseFloat($(id).value); return isNaN(v) ? d : v; };
 const usd = n => (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const sgn = n => (n > 0 ? "+" : "") + usd(n);
+const cls = n => n > 0 ? "pos" : n < 0 ? "neg" : "";
+const rFmt = r => isFinite(r) ? r.toFixed(2) + "R" : "—";
+const POINT_VALUE = { MNQ: 2, NQ: 20, MES: 5, ES: 50 };
+const OPT_MULT = 100;
+const state = { o_ticker: "SPY", o_dir: "call", o_exp: "1DTE", f_sym: "MNQ", f_dir: "long" };
 
-function calc() {
-  const entry = parseFloat($("entry").value) || 0;
-  const qty = parseInt($("qty").value) || 0;
-  const exitPct = Math.min(Math.max(parseFloat($("exitPct").value) || 0, 0), 100);
-  const gainPct = parseFloat($("gain").value) || 0;
-  const runnerRaw = parseFloat($("runner").value);
-  const runnerGainPct = !isNaN(runnerRaw) ? runnerRaw : gainPct;
-  const totalCost = entry * qty * MULT;
-  // Whole contracts only; a manual override wins over the slider split.
-  const overrideRaw = parseInt($("scaleQty").value);
+// Tabs
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("on", x === b));
+  document.querySelectorAll(".pane").forEach(p => p.classList.toggle("on", p.id === b.dataset.pane));
+  try { localStorage.setItem("bs_calc_tab", b.dataset.pane); } catch (e) {}
+}));
+try { const t = localStorage.getItem("bs_calc_tab"); if (t === "fut") document.querySelector('.tabs button[data-pane="fut"]').click(); } catch (e) {}
+if (location.hash === "#futures") document.querySelector('.tabs button[data-pane="fut"]').click();
+
+// Segmented controls
+document.querySelectorAll(".seg").forEach(seg => seg.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  state[seg.id] = b.dataset.v; renderAll();
+}));
+document.querySelectorAll("input").forEach(i => i.addEventListener("input", renderAll));
+$("o_resetSplit").onclick = () => { $("o_scaleQty").value = ""; renderAll(); };
+$("f_resetSplit").onclick = () => { $("f_scaleQty").value = ""; renderAll(); };
+
+// Shared: whole-contract scale/runner split (manual override wins over slider)
+function split(prefix, qty) {
+  const exitPct = Math.min(Math.max(num(prefix + "exitPct"), 0), 100);
+  const overrideRaw = parseInt($(prefix + "scaleQty").value);
   const hasOverride = !isNaN(overrideRaw);
-  const sliderScaleQty = Math.round((qty * exitPct) / 100);
-  const scaleQty = Math.min(Math.max(hasOverride ? overrideRaw : sliderScaleQty, 0), qty);
-  const runnerQty = qty - scaleQty;
-  const firstTargetPrem = entry * (1 + gainPct / 100);
-  const runnerTargetPrem = entry * (1 + runnerGainPct / 100);
-  const scaleProfit = (firstTargetPrem - entry) * scaleQty * MULT;
-  const runnerProfit = (runnerTargetPrem - entry) * runnerQty * MULT;
-  return { entry, qty, gainPct, runnerGainPct, totalCost, hasOverride, scaleQty, runnerQty,
-    firstTargetPrem, runnerTargetPrem, scaleProfit, runnerProfit, total: scaleProfit + runnerProfit };
+  const scaleQty = Math.min(Math.max(hasOverride ? overrideRaw : Math.round((qty * exitPct) / 100), 0), qty);
+  $(prefix + "exitPctOut").textContent = exitPct + "%";
+  $(prefix + "runnerQty").value = String(qty - scaleQty);
+  $(prefix + "overrideNote").hidden = hasOverride;
+  $(prefix + "resetSplit").hidden = !hasOverride;
+  if (!hasOverride) $(prefix + "scaleQty").placeholder = String(scaleQty);
+  return { scaleQty, runnerQty: qty - scaleQty };
 }
 
-function render() {
-  $("exitPctOut").textContent = $("exitPct").value + "%";
-  const p = calc();
-  $("runnerQty").value = String(p.runnerQty);
-  $("overrideNote").hidden = p.hasOverride;
-  $("resetSplit").hidden = !p.hasOverride;
-  if (!$("scaleQty").value) $("scaleQty").placeholder = String(p.scaleQty);
-
-  const strike = $("strike").value.trim();
-  const label = `${state.ticker} ${strike ? strike : ""}${state.dir === "call" ? "C" : "P"} · ${state.exp}`;
-
+// ---------- OPTIONS ----------
+function calcOptions() {
+  const entry = num("o_entry"), qty = parseInt($("o_qty").value) || 0;
+  const stopPct = Math.min(Math.max(num("o_stop"), 0), 100);
+  const gainPct = num("o_gain");
+  const runnerRaw = parseFloat($("o_runner").value);
+  const runnerGainPct = !isNaN(runnerRaw) ? runnerRaw : gainPct;
+  const { scaleQty, runnerQty } = split("o_", qty);
+  const totalCost = entry * qty * OPT_MULT;
+  const stopPrem = entry * (1 - stopPct / 100);
+  const t1Prem = entry * (1 + gainPct / 100);
+  const t2Prem = entry * (1 + runnerGainPct / 100);
+  const maxLoss = (stopPrem - entry) * qty * OPT_MULT;               // negative
+  const scaleProfit = (t1Prem - entry) * scaleQty * OPT_MULT;
+  const runnerProfit = (t2Prem - entry) * runnerQty * OPT_MULT;
+  const bestCase = scaleProfit + runnerProfit;
+  const scaleThenStopped = scaleProfit + (stopPrem - entry) * runnerQty * OPT_MULT; // runner stopped at original stop
+  const scaleThenBE = scaleProfit;                                     // runner stop moved to entry
+  return { entry, qty, stopPct, gainPct, runnerGainPct, scaleQty, runnerQty, totalCost, stopPrem, t1Prem, t2Prem,
+    maxLoss, scaleProfit, runnerProfit, bestCase, scaleThenStopped, scaleThenBE,
+    rrT1: maxLoss < 0 ? ((t1Prem - entry) * qty * OPT_MULT) / -maxLoss : Infinity,
+    rrBest: maxLoss < 0 ? bestCase / -maxLoss : Infinity };
+}
+function renderOptions() {
+  const p = calcOptions();
+  const strike = $("o_strike").value.trim();
+  const label = `${state.o_ticker} ${strike}${state.o_dir === "call" ? "C" : "P"} · ${state.o_exp}`;
   if (p.totalCost <= 0) {
-    $("split").innerHTML = "";
-    $("out").innerHTML = '<p class="empty">Enter an entry premium and contracts to see your targets.</p>';
+    $("o_split").innerHTML = "";
+    $("o_out").innerHTML = '<p class="empty">Enter an entry premium and contracts to see your stop, targets and R:R.</p>';
     return;
   }
-  $("split").innerHTML =
-    `<span class="chip">${p.scaleQty} sell at +${p.gainPct}% · $${p.firstTargetPrem.toFixed(2)}</span>` +
+  $("o_split").innerHTML =
+    `<span class="chip stp">Stop −${p.stopPct}% · $${p.stopPrem.toFixed(2)}</span>` +
+    `<span class="chip">${p.scaleQty} sell +${p.gainPct}% · $${p.t1Prem.toFixed(2)}</span>` +
     `<span class="arrow">→</span>` +
-    `<span class="chip run">${p.runnerQty} runner to +${p.runnerGainPct}% · $${p.runnerTargetPrem.toFixed(2)}</span>`;
-  $("out").innerHTML =
+    `<span class="chip run">${p.runnerQty} run +${p.runnerGainPct}% · $${p.t2Prem.toFixed(2)}</span>`;
+  let html =
     `<div class="line"><span>${label}</span><b>${usd(p.totalCost)} cost</b></div>` +
-    `<div class="line"><span>Scale (${p.scaleQty} @ +${p.gainPct}% → $${p.firstTargetPrem.toFixed(2)})</span><b>+${usd(p.scaleProfit)}</b></div>` +
-    `<div class="line"><span>Runner (${p.runnerQty} @ +${p.runnerGainPct}% → $${p.runnerTargetPrem.toFixed(2)})</span><b>+${usd(p.runnerProfit)}</b></div>` +
-    `<div class="line total"><span>Total if both targets hit</span><b>+${usd(p.total)}</b></div>` +
-    `<div class="risk">Downside isn't shown above. Worst case on this position is most of the ${usd(p.totalCost)} entry.</div>`;
+    `<div class="line"><span>Stop hit (all ${p.qty} @ $${p.stopPrem.toFixed(2)})</span><b class="neg">${sgn(p.maxLoss)}</b></div>` +
+    `<div class="line"><span>Scale (${p.scaleQty} @ $${p.t1Prem.toFixed(2)})</span><b class="pos">${sgn(p.scaleProfit)}</b></div>` +
+    `<div class="line"><span>Runner (${p.runnerQty} @ $${p.t2Prem.toFixed(2)})</span><b class="pos">${sgn(p.runnerProfit)}</b></div>`;
+  if (p.runnerQty > 0 && p.scaleQty > 0)
+    html += `<div class="line"><span>Scale hits, runner stopped</span><b class="${cls(p.scaleThenStopped)}">${sgn(p.scaleThenStopped)}</b></div>` +
+            `<div class="line"><span>Scale hits, runner stop moved to entry</span><b class="${cls(p.scaleThenBE)}">${sgn(p.scaleThenBE)}</b></div>`;
+  html += `<div class="line total"><span>Both targets hit</span><b class="pos">${sgn(p.bestCase)}</b></div>`;
+  html += `<div class="rr"><div><small>Risk</small><strong style="color:#FF6B78">${usd(-p.maxLoss)}</strong></div>` +
+          `<div><small>R:R to T1</small><strong>${rFmt(p.rrT1)}</strong></div>` +
+          `<div><small>R:R both</small><strong>${rFmt(p.rrBest)}</strong></div></div>`;
+  html += tipFor(p.rrBest, p.stopPct === 0
+    ? "No stop set. Your risk is the full " + usd(p.totalCost) + " premium."
+    : null);
+  $("o_out").innerHTML = html;
 }
-render();
+
+// ---------- FUTURES ----------
+function calcFutures() {
+  const pv = POINT_VALUE[state.f_sym];
+  const qty = parseInt($("f_qty").value) || 0;
+  const stopPts = Math.abs(num("f_stop"));
+  const t1 = Math.abs(num("f_t1"));
+  const t2raw = parseFloat($("f_t2").value);
+  const t2 = !isNaN(t2raw) ? Math.abs(t2raw) : t1;
+  const fee = Math.max(num("f_fee"), 0);
+  const dll = Math.max(num("f_dll"), 0);
+  const entry = parseFloat($("f_entry").value);
+  const dirSign = state.f_dir === "long" ? 1 : -1;
+  const { scaleQty, runnerQty } = split("f_", qty);
+  const fees = fee * qty;
+  const maxLoss = -(stopPts * pv * qty) - fees;
+  const scaleProfit = t1 * pv * scaleQty;
+  const runnerProfit = t2 * pv * runnerQty;
+  const bestCase = scaleProfit + runnerProfit - fees;
+  const scaleThenStopped = scaleProfit - stopPts * pv * runnerQty - fees;
+  const scaleThenBE = scaleProfit - fees;
+  const riskPerContract = stopPts * pv + fee;
+  const maxContracts = dll > 0 && riskPerContract > 0 ? Math.floor(dll / riskPerContract) : null;
+  const lv = d => isNaN(entry) ? null : entry + dirSign * d;
+  return { pv, qty, stopPts, t1, t2, fees, dll, entry, scaleQty, runnerQty, maxLoss, scaleProfit, runnerProfit,
+    bestCase, scaleThenStopped, scaleThenBE, riskPerContract, maxContracts,
+    stopPx: lv(-stopPts), t1Px: lv(t1), t2Px: lv(t2),
+    rrT1: stopPts > 0 ? t1 / stopPts : Infinity, rrBest: maxLoss < 0 ? bestCase / -maxLoss : Infinity };
+}
+function px(v) { return v === null ? "" : " · " + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function renderFutures() {
+  const p = calcFutures();
+  if (p.qty <= 0) {
+    $("f_split").innerHTML = "";
+    $("f_out").innerHTML = '<p class="empty">Enter contracts and your stop and targets in points.</p>';
+    return;
+  }
+  $("f_split").innerHTML =
+    `<span class="chip stp">Stop ${p.stopPts} pts${px(p.stopPx)}</span>` +
+    `<span class="chip">${p.scaleQty} sell +${p.t1} pts${px(p.t1Px)}</span>` +
+    `<span class="arrow">→</span>` +
+    `<span class="chip run">${p.runnerQty} run +${p.t2} pts${px(p.t2Px)}</span>`;
+  let html =
+    `<div class="line"><span>${p.qty} ${state.f_sym} ${state.f_dir} · $${p.pv}/pt per contract</span><b>${usd(p.pv * p.qty)}/pt</b></div>` +
+    `<div class="line"><span>Stop hit (${p.stopPts} pts × ${p.qty})</span><b class="neg">${sgn(p.maxLoss)}</b></div>` +
+    `<div class="line"><span>Scale (${p.scaleQty} × ${p.t1} pts)</span><b class="pos">${sgn(p.scaleProfit)}</b></div>` +
+    `<div class="line"><span>Runner (${p.runnerQty} × ${p.t2} pts)</span><b class="pos">${sgn(p.runnerProfit)}</b></div>`;
+  if (p.fees > 0) html += `<div class="line"><span>Fees (round trip)</span><b class="neg">${sgn(-p.fees)}</b></div>`;
+  if (p.runnerQty > 0 && p.scaleQty > 0)
+    html += `<div class="line"><span>Scale hits, runner stopped</span><b class="${cls(p.scaleThenStopped)}">${sgn(p.scaleThenStopped)}</b></div>` +
+            `<div class="line"><span>Scale hits, runner stop moved to entry</span><b class="${cls(p.scaleThenBE)}">${sgn(p.scaleThenBE)}</b></div>`;
+  html += `<div class="line total"><span>Both targets hit${p.fees > 0 ? " (after fees)" : ""}</span><b class="pos">${sgn(p.bestCase)}</b></div>`;
+  html += `<div class="rr"><div><small>Risk</small><strong style="color:#FF6B78">${usd(-p.maxLoss)}</strong></div>` +
+          `<div><small>R:R to T1</small><strong>${rFmt(p.rrT1)}</strong></div>` +
+          `<div><small>R:R both</small><strong>${rFmt(p.rrBest)}</strong></div></div>`;
+  if (p.maxContracts !== null) {
+    const over = p.qty > p.maxContracts;
+    html += `<div class="tip ${over ? "warn" : "gold"}">Daily loss limit ${usd(p.dll)}: max <b>${p.maxContracts}</b> ${state.f_sym} at a ${p.stopPts}-pt stop (${usd(p.riskPerContract)} risk each).` +
+            (over ? ` You're at ${p.qty}. One full stop-out would break your limit.` : ` One full stop-out uses ${Math.round((-p.maxLoss / p.dll) * 100)}% of your limit.`) + `</div>`;
+  }
+  html += tipFor(p.rrBest, p.stopPts === 0 ? "No stop set. Futures risk is unlimited without one." : null);
+  $("f_out").innerHTML = html;
+}
+
+function tipFor(rr, override) {
+  if (override) return `<div class="tip warn">${override}</div>`;
+  if (!isFinite(rr)) return "";
+  if (rr < 1) return `<div class="tip warn">You're risking more than you can make on this plan (${rr.toFixed(2)}R). Tighten the stop or widen the targets.</div>`;
+  if (rr >= 2) return `<div class="tip good">Solid plan: ${rr.toFixed(2)}R if both targets hit.</div>`;
+  return "";
+}
+
+function renderAll() { renderOptions(); renderFutures(); }
+renderAll();
 </script>
 </body>
 </html>
