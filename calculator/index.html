@@ -113,17 +113,17 @@ footer{margin-top:28px;font-size:11.5px;color:#6E7B75;text-align:center;line-hei
     </div>
     <div class="row">
       <div><label for="o_entry">Entry premium</label><input id="o_entry" inputmode="decimal" placeholder="e.g. 1.85"></div>
-      <div><label for="o_qty">Contracts</label><input id="o_qty" inputmode="numeric" value="1"></div>
+      <div><label for="o_qty">Contracts</label><input id="o_qty" inputmode="numeric" placeholder="e.g. 5"></div>
     </div>
     <div class="row three">
-      <div><label for="o_stop">Stop % <em>loss</em></label><input class="stop" id="o_stop" inputmode="decimal" value="30"></div>
-      <div><label for="o_gain">Target 1 %</label><input id="o_gain" inputmode="decimal" value="10"></div>
-      <div><label for="o_runner">Runner %</label><input id="o_runner" inputmode="decimal" value="25"></div>
+      <div><label for="o_stop">Stop % <em>loss</em></label><input class="stop" id="o_stop" inputmode="decimal" placeholder="e.g. 30"></div>
+      <div><label for="o_gain">Target 1 %</label><input id="o_gain" inputmode="decimal" placeholder="e.g. 10"></div>
+      <div><label for="o_runner">Runner %</label><input id="o_runner" inputmode="decimal" placeholder="e.g. 25"></div>
     </div>
 
     <div class="slider">
-      <div class="lbl"><label for="o_exitPct">Sell at target 1</label><span id="o_exitPctOut">85%</span></div>
-      <input type="range" id="o_exitPct" min="0" max="100" step="5" value="85">
+      <div class="lbl"><label for="o_exitPct">Sell at target 1</label><span id="o_exitPctOut">50%</span></div>
+      <input type="range" id="o_exitPct" min="0" max="100" step="5" value="50">
     </div>
     <div class="row">
       <div><label for="o_scaleQty">Scale contracts</label><input id="o_scaleQty" inputmode="numeric" placeholder="auto"></div>
@@ -146,12 +146,12 @@ footer{margin-top:28px;font-size:11.5px;color:#6E7B75;text-align:center;line-hei
     </div>
     <div class="row">
       <div><label for="f_entry">Entry price <em>optional</em></label><input id="f_entry" inputmode="decimal" placeholder="e.g. 21450.25"></div>
-      <div><label for="f_qty">Contracts</label><input id="f_qty" inputmode="numeric" value="2"></div>
+      <div><label for="f_qty">Contracts</label><input id="f_qty" inputmode="numeric" placeholder="e.g. 2"></div>
     </div>
     <div class="row three">
-      <div><label for="f_stop">Stop <em>pts</em></label><input class="stop" id="f_stop" inputmode="decimal" value="15"></div>
-      <div><label for="f_t1">Target 1 <em>pts</em></label><input id="f_t1" inputmode="decimal" value="20"></div>
-      <div><label for="f_t2">Runner <em>pts</em></label><input id="f_t2" inputmode="decimal" value="30"></div>
+      <div><label for="f_stop">Stop <em>pts</em></label><input class="stop" id="f_stop" inputmode="decimal" placeholder="e.g. 15"></div>
+      <div><label for="f_t1">Target 1 <em>pts</em></label><input id="f_t1" inputmode="decimal" placeholder="e.g. 20"></div>
+      <div><label for="f_t2">Runner <em>pts</em></label><input id="f_t2" inputmode="decimal" placeholder="e.g. 30"></div>
     </div>
 
     <div class="slider">
@@ -248,10 +248,10 @@ function calcOptions() {
 function renderOptions() {
   const p = calcOptions();
   const strike = $("o_strike").value.trim();
-  const label = `${state.o_ticker} ${strike}${state.o_dir === "call" ? "C" : "P"} · ${state.o_exp}`;
-  if (p.totalCost <= 0) {
+  const label = strike ? `${state.o_ticker} ${strike}${state.o_dir === "call" ? "C" : "P"} · ${state.o_exp}` : `${state.o_ticker} ${state.o_dir === "call" ? "Call" : "Put"} · ${state.o_exp}`;
+  if (p.totalCost <= 0 || $("o_stop").value.trim() === "" || $("o_gain").value.trim() === "") {
     $("o_split").innerHTML = "";
-    $("o_out").innerHTML = '<p class="empty">Enter an entry premium and contracts to see your stop, targets and R:R.</p>';
+    $("o_out").innerHTML = '<p class="empty">Enter your entry premium, contracts, stop % and target 1 % to see your plan and R:R.</p>';
     return;
   }
   $("o_split").innerHTML =
@@ -308,9 +308,9 @@ function calcFutures() {
 function px(v) { return v === null ? "" : " · " + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function renderFutures() {
   const p = calcFutures();
-  if (p.qty <= 0) {
+  if (p.qty <= 0 || $("f_stop").value.trim() === "" || $("f_t1").value.trim() === "") {
     $("f_split").innerHTML = "";
-    $("f_out").innerHTML = '<p class="empty">Enter contracts and your stop and targets in points.</p>';
+    $("f_out").innerHTML = '<p class="empty">Enter contracts, your stop and target 1 in points to see your plan and R:R.</p>';
     return;
   }
   $("f_split").innerHTML =
