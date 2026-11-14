@@ -138,6 +138,11 @@ html[data-theme="light"] .game{--tvbg:#ffffff;--tvpanel:#f0f3fa;--tvline:#e0e3eb
 .tvleg{display:flex;gap:12px;flex-wrap:wrap;padding:4px 10px;font:11.5px -apple-system,BlinkMacSystemFont,"Trebuchet MS",Roboto,sans-serif;border-bottom:1px solid var(--tvline);min-height:0}
 .tvleg:empty{display:none}
 .tvleg b{font-weight:500}
+.stoprow{display:flex;gap:6px;align-items:stretch}
+.stoprow input{width:64px;flex:none;border:1px solid var(--tvline);background:var(--tvpanel);color:var(--tvtext);border-radius:6px;padding:0 8px;font:600 14px -apple-system,BlinkMacSystemFont,Roboto,sans-serif}
+.stoprow input:focus{outline:none;border-color:var(--tvblue)}
+.stoprow .seg{flex:1}
+@media(max-width:560px){.brk{grid-template-columns:1fr}}
 html{color-scheme:dark}html[data-theme="light"]{color-scheme:light}
 html[data-theme="light"] body{background:radial-gradient(600px 380px at 50% -40px,rgba(22,184,102,.10),transparent 70%),var(--bg)}
 html[data-theme="light"] .card,html[data-theme="light"] a.btn{box-shadow:0 1px 3px var(--shadow)}
@@ -201,8 +206,8 @@ html,body,a.btn,.card,input,select,textarea,button{transition:background-color .
       </div>
       <button class="tvclose hide" id="bClose">Close position</button>
       <div class="brk">
-        <div><div class="lbl">Stop loss (pts)</div><div class="seg mini" id="sStop"><button data-v="10">10</button><button data-v="20" class="on">20</button><button data-v="30">30</button><button data-v="50">50</button></div></div>
-        <div><div class="lbl">Take profit</div><div class="seg mini" id="sTgt"><button data-v="1">1R</button><button data-v="2" class="on">2R</button><button data-v="3">3R</button></div></div>
+        <div><div class="lbl">Stop loss (pts)</div><div class="stoprow"><input id="stopIn" type="number" inputmode="decimal" min="1" max="300" step="0.25" value="20" aria-label="Stop loss in points"><div class="seg mini" id="sStop"><button data-v="10">10</button><button data-v="20" class="on">20</button><button data-v="30">30</button><button data-v="50">50</button></div></div></div>
+        <div><div class="lbl">Take profit</div><div class="seg mini" id="sTgt"><button data-v="0" class="on">None</button><button data-v="1">1R</button><button data-v="2">2R</button><button data-v="3">3R</button></div></div>
       </div>
       <div class="risk" id="riskLine"></div>
     </div>
@@ -227,7 +232,7 @@ html,body,a.btn,.card,input,select,textarea,button{transition:background-color .
     <div class="howb">
       <p><b>The account:</b> $50,000 practice account trading MNQ (Micro Nasdaq, $2 per point per contract). The session runs from the 6:30am open to 8:30am PT on a real past morning. The date stays hidden until you finish.</p>
       <p><b>Daily loss limit: $1,000.</b> Hit it and the account is done for the day, just like a funded account. You can keep training in Practice mode.</p>
-      <p><b>Every trade has a stop.</b> You can't risk more than what's left of your daily limit on one trade. Stops and targets fill at their price; if a candle hits both, the stop counts first.</p>
+      <p><b>Every trade has a stop.</b> Pick any stop size. You can't risk more than what's left of your daily limit on one trade. Take profit is optional: set 1R–3R or manage the exit yourself. Stops and targets fill at their price; if a candle hits both, the stop counts first.</p><p><b>Your strategy, your chart.</b> The chart starts clean. Add EMAs, VWAP or key levels from the Indicators menu only if you use them.</p>
       <p><b>Daily Challenge:</b> one attempt per day, same session for everyone, resets at midnight PT. Log in to post your score to the leaderboard. <b>Practice:</b> unlimited random sessions, not ranked.</p>
     </div>
   </details>
@@ -243,9 +248,9 @@ var BASE="https://uqitaxzmaoqbebucfnbe.supabase.co",KEY="eyJhbGciOiJIUzI1NiIsInR
 var H={headers:{Authorization:"Bearer "+KEY,apikey:KEY}};
 var sb=null;try{if(window.supabase)sb=window.supabase.createClient(BASE,KEY);}catch(e){sb=null;}
 var $=function(i){return document.getElementById(i);};
-var PV=2,START=50000,LIMIT=1000,MINRISK=20;
+var PV=2,START=50000,LIMIT=1000,MINRISK=2;
 var user=null,G=null,timer=null;
-var cfg={mode:"daily",qty:1,stop:20,r:2,speed:1500};
+var cfg={mode:"daily",qty:1,stop:20,r:0,speed:1500};
 function todayPT(){return new Date().toLocaleDateString("en-CA",{timeZone:"America/Los_Angeles"});}
 function fmtT(m){var h=Math.floor(m/60),mi=m%60,ap=h<12?"a":"p",hh=h%12===0?12:h%12;return hh+":"+("0"+mi).slice(-2)+ap;}
 function usd(v,sign){var a=Math.abs(v),s=v<0?"-":(sign&&v>0?"+":"");return s+"$"+a.toLocaleString("en-US",{minimumFractionDigits:a%1?2:0,maximumFractionDigits:2});}
@@ -292,8 +297,8 @@ function step(){
   if(G.i>=G.bars.length-1){end();return;}
   G.i++;var b=bar();
   if(G.pos){var p=G.pos;
-    if(p.side>0){if(b[3]<=p.stop)exitPos(p.stop,"stop");else if(b[2]>=p.tgt)exitPos(p.tgt,"target");}
-    else{if(b[2]>=p.stop)exitPos(p.stop,"stop");else if(b[3]<=p.tgt)exitPos(p.tgt,"target");}
+    if(p.side>0){if(b[3]<=p.stop)exitPos(p.stop,"stop");else if(p.tgt!=null&&b[2]>=p.tgt)exitPos(p.tgt,"target");}
+    else{if(b[2]>=p.stop)exitPos(p.stop,"stop");else if(p.tgt!=null&&b[3]<=p.tgt)exitPos(p.tgt,"target");}
   }
   if(!G.ended&&G.i>=G.bars.length-1)end();
   render();
@@ -304,7 +309,7 @@ function enter(side){
   var risk=cfg.stop*PV*cfg.qty,rem=remaining();
   if(risk>rem){msg("That trade risks "+usd(risk)+" but you only have "+usd(rem)+" left before the daily limit. Lower your size or tighten your stop.","warn");return;}
   var e=bar()[4]+(side>0?0.25:0);G.started=true;
-  G.pos={side:side,qty:cfg.qty,entry:e,stop:e-side*cfg.stop,tgt:e+side*cfg.stop*cfg.r,at:G.i,risk:risk};
+  G.pos={side:side,qty:cfg.qty,entry:e,stop:e-side*cfg.stop,tgt:cfg.r?e+side*cfg.stop*cfg.r:null,at:G.i,risk:risk};
   G.marks.push({i:G.i,px:e,t:side>0?"b":"s"});persist();render();
 }
 function closePos(){if(G&&G.pos&&!G.ended){exitPos(bar()[4],"manual");render();}}
@@ -327,11 +332,11 @@ function render(){
   $("sOpen").textContent=G.pos?usd(op,true):"–";$("sOpen").className=cls(op);
   $("limFill").style.width=Math.max(0,Math.min(100,(1-Math.max(0,rem)/LIMIT)*100)).toFixed(0)+"%";
   var risk=cfg.stop*PV*cfg.qty;
-  $("riskLine").innerHTML='Risk <b class="neg">'+usd(risk)+'</b> · Target <b class="pos">'+usd(risk*cfg.r)+'</b> · '+cfg.qty+' MNQ · stop '+cfg.stop+' pts'+(risk>remaining()?' <span class="neg">· over your remaining limit</span>':'');
+  $("riskLine").innerHTML='Risk <b class="neg">'+usd(risk)+'</b> · '+(cfg.r?'Target <b class="pos">'+usd(risk*cfg.r)+'</b>':'No target, you manage the exit')+' · '+cfg.qty+' MNQ · stop '+cfg.stop+' pts'+(risk>remaining()?' <span class="neg">· over your remaining limit</span>':'');
   $("pxB").textContent=(b[4]+0.25).toFixed(2);$("pxS").textContent=b[4].toFixed(2);$("qv").textContent=cfg.qty;
   $("bBuy").disabled=!!G.pos||G.ended;$("bSell").disabled=!!G.pos||G.ended;$("bClose").classList.toggle("hide",!G.pos);
   ["bClose","bStep","bPlay","qm","qp"].forEach(function(id){$(id).disabled=G.ended;});
-  if(G.pos){var p=G.pos;msg((p.side>0?'<b class="pos">LONG</b>':'<b class="neg">SHORT</b>')+' '+p.qty+' MNQ @ '+p.entry.toFixed(2)+' · stop '+p.stop.toFixed(2)+' · target '+p.tgt.toFixed(2));}
+  if(G.pos){var p=G.pos;msg((p.side>0?'<b class="pos">LONG</b>':'<b class="neg">SHORT</b>')+' '+p.qty+' MNQ @ '+p.entry.toFixed(2)+' · stop '+p.stop.toFixed(2)+(p.tgt!=null?' · target '+p.tgt.toFixed(2):' · no target'));}
   else if(G.ended)msg(G.blown?'<b class="neg">Daily loss limit hit.</b> Account is done for today.':"Session complete.");
   else if(!G.trades.length)msg("Flat. Set your size and stop, then pick a side. Price so far: "+b[4].toFixed(2));
   else{var t=G.trades[G.trades.length-1];msg("Flat. Last trade: "+(t.side>0?"long":"short")+" closed at "+t.why+" for <b class=\""+cls(t.pnl)+"\">"+usd(t.pnl,true)+"</b>.");}
@@ -343,8 +348,8 @@ function tvColors(){var light=document.documentElement.getAttribute("data-theme"
   return light?{bg:"#ffffff",text:"#131722",grid:"#f0f3fa",border:"#e0e3eb",cross:"#9598a1",volU:"rgba(8,153,129,.35)",volD:"rgba(242,54,69,.35)"}
               :{bg:"#131722",text:"#d1d4dc",grid:"#1e222d",border:"#2a2e39",cross:"#758696",volU:"rgba(8,153,129,.45)",volD:"rgba(242,54,69,.45)"};}
 var UP="#089981",DN="#F23645",BLUE="#2962FF";
-var IND={e9:{on:true,c:"#FF9800",n:"EMA 9"},e21:{on:true,c:"#AB47BC",n:"EMA 21"},e50:{on:false,c:"#26C6DA",n:"EMA 50"},e200:{on:false,c:"#A1887F",n:"EMA 200"},vwap:{on:true,c:"#FBC02D",n:"VWAP"}};
-var KEYLV={on:true},LVN={pdh:"PDH",pdl:"PDL",pdc:"PDC",onh:"ONH",onl:"ONL"},LS={},LVL=[];
+var IND={e9:{on:false,c:"#FF9800",n:"EMA 9"},e21:{on:false,c:"#AB47BC",n:"EMA 21"},e50:{on:false,c:"#26C6DA",n:"EMA 50"},e200:{on:false,c:"#A1887F",n:"EMA 200"},vwap:{on:false,c:"#FBC02D",n:"VWAP"}};
+var KEYLV={on:false},LVN={pdh:"PDH",pdl:"PDL",pdc:"PDC",onh:"ONH",onl:"ONL"},LS={},LVL=[];
 try{var sv=JSON.parse(localStorage.getItem("bs_gym_ind")||"null");if(sv){Object.keys(IND).forEach(function(k){if(k in sv)IND[k].on=!!sv[k];});if("lv" in sv)KEYLV.on=!!sv.lv;}}catch(e){}
 function saveInd(){try{var o={lv:KEYLV.on};Object.keys(IND).forEach(function(k){o[k]=IND[k].on;});localStorage.setItem("bs_gym_ind",JSON.stringify(o));}catch(e){}}
 function initChart(){
@@ -388,7 +393,7 @@ function drawChart(){
   if(G.pos){var p=G.pos,lbl=(p.side>0?"Long ":"Short ")+p.qty;
     PL.push(CS.createPriceLine({price:p.entry,color:BLUE,lineWidth:2,lineStyle:0,axisLabelVisible:true,title:lbl}));
     PL.push(CS.createPriceLine({price:p.stop,color:DN,lineWidth:1,lineStyle:2,axisLabelVisible:true,title:"SL "+usd(-p.risk)}));
-    PL.push(CS.createPriceLine({price:p.tgt,color:UP,lineWidth:1,lineStyle:2,axisLabelVisible:true,title:"TP "+usd(p.risk*(Math.abs(p.tgt-p.entry)/Math.abs(p.entry-p.stop)),true)}));}
+    if(p.tgt!=null)PL.push(CS.createPriceLine({price:p.tgt,color:UP,lineWidth:1,lineStyle:2,axisLabelVisible:true,title:"TP "+usd(p.risk*(Math.abs(p.tgt-p.entry)/Math.abs(p.entry-p.stop)),true)}));}
   var ms=[{time:tOf(G.bars[G.d.startIdx][0]),position:"aboveBar",color:"#f5a623",shape:"square",size:0.5,text:"Open"}];
   G.marks.forEach(function(m){var t=tOf(G.bars[m.i][0]);
     if(m.t==="b")ms.push({time:t,position:"belowBar",color:BLUE,shape:"arrowUp",text:"Buy"});
@@ -451,7 +456,8 @@ function setMode(m){cfg.mode=m;document.querySelectorAll("#sMode button").forEac
 function seg(id,key,num){$(id).querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){cfg[key]=num?+b.getAttribute("data-v"):b.getAttribute("data-v");$(id).querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});if(key==="speed"&&timer){stop();togglePlay();}render();});});}
 document.querySelectorAll("#sMode button").forEach(function(b){b.addEventListener("click",function(){setMode(b.getAttribute("data-v"));});});
 $("sLb").querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){lbMode=b.getAttribute("data-v");$("sLb").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});loadLb();});});
-$("qm").onclick=function(){var q=[1,2,3,5,10],i=q.indexOf(cfg.qty);cfg.qty=q[Math.max(0,i-1)];render();};$("qp").onclick=function(){var q=[1,2,3,5,10],i=q.indexOf(cfg.qty);cfg.qty=q[Math.min(q.length-1,i+1)];render();};seg("sStop","stop",1);seg("sTgt","r",1);seg("sSpd","speed",1);
+$("qm").onclick=function(){var q=[1,2,3,5,10],i=q.indexOf(cfg.qty);cfg.qty=q[Math.max(0,i-1)];render();};$("qp").onclick=function(){var q=[1,2,3,5,10],i=q.indexOf(cfg.qty);cfg.qty=q[Math.min(q.length-1,i+1)];render();};seg("sStop","stop",1);$("sStop").querySelectorAll("button").forEach(function(bt){bt.addEventListener("click",function(){$("stopIn").value=bt.getAttribute("data-v");});});
+$("stopIn").addEventListener("input",function(){var v=parseFloat($("stopIn").value);if(isFinite(v)&&v>=1&&v<=300){cfg.stop=Math.round(v*4)/4;$("sStop").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",+x.getAttribute("data-v")===cfg.stop);});render();}});seg("sTgt","r",1);seg("sSpd","speed",1);
 $("bBuy").onclick=function(){enter(1);};$("bSell").onclick=function(){enter(-1);};$("bClose").onclick=closePos;$("bStep").onclick=step;$("bPlay").onclick=togglePlay;
 document.addEventListener("keydown",function(e){if(/INPUT|TEXTAREA/.test((e.target||{}).tagName))return;var k=e.key.toLowerCase();
   if(k==="b")enter(1);else if(k==="s")enter(-1);else if(k==="c")closePos();else if(k==="arrowright"||k==="n"){e.preventDefault();step();}else if(k===" "){e.preventDefault();togglePlay();}});
