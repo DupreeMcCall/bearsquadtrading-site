@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Gym · Practice trading NQ · Bear Squad Trading</title>
+<meta name="description" content="The Gym: replay real NQ mornings candle by candle, trade a $50K practice account with a $1,000 daily loss limit, and climb the daily leaderboard. From Bear Squad Trading.">
+<meta name="theme-color" content="#07090A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%22100%2090%20400%20450%22%3E%3Crect%20x%3D%22100%22%20y%3D%2290%22%20width%3D%22400%22%20height%3D%22450%22%20fill%3D%22%2307090A%22/%3E%3Cpath%20d%3D%22M300%20182%20L236%20168%20L214%20122%20L172%20114%20L146%20138%20L148%20214%20L110%20300%20L160%20402%20L248%20470%20L300%20522%20L352%20470%20L440%20402%20L490%20300%20L452%20214%20L454%20138%20L428%20114%20L386%20122%20L364%20168%20Z%22%20fill%3D%22none%22%20stroke%3D%22%231FD67A%22%20stroke-width%3D%2222%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem("bs_theme");if(t==="light")document.documentElement.setAttribute("data-theme","light");}catch(e){}</script>
+<style>
+:root{--bg:#07090A;--panel:#0E1211;--panel2:#0A0D0C;--line:#1C2622;--line2:#2E3C36;--g1:#5CFFB0;--g2:#1FD67A;--g3:#12C26A;--red:#E8293B;--ink:#EAF4EE;--mute:#9AA8A1;--mute2:#6E7B75;--mint:#9FF5C9;--gold:#F5C542;--gold2:#F3DFA0;--pos:#5CFFB0;--neg:#FF6B78;--neg2:#FF8A95;--card:rgba(14,18,17,.6);--overlay:rgba(3,5,5,.82);--shadow:rgba(0,0,0,0)}
+html[data-theme="light"]{--bg:#F4F7F5;--panel:#FFFFFF;--panel2:#F0F4F2;--line:#D9E2DD;--line2:#BCC8C2;--g1:#16B866;--g2:#11A65A;--g3:#0B8A4A;--red:#D61F31;--ink:#0C1511;--mute:#56635D;--mute2:#78857F;--mint:#0B8A4A;--gold:#A87A06;--gold2:#8A6406;--pos:#0E9F57;--neg:#D42638;--neg2:#C2293A;--card:rgba(255,255,255,.8);--overlay:rgba(20,28,24,.45);--shadow:rgba(16,40,28,.06)}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;display:flex;justify-content:center;padding:28px 14px 56px;
+  background:radial-gradient(600px 380px at 50% -40px,rgba(31,214,122,.12),transparent 70%),var(--bg)}
+main{width:100%;max-width:760px}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.brand svg{width:34px;height:auto}
+.brand .wm{display:flex;flex-direction:column;align-items:center;line-height:1}
+.brand b{font-family:Rajdhani,sans-serif;font-weight:600;font-size:19px;letter-spacing:.16em;
+  background:linear-gradient(180deg,var(--g1),var(--g3));-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand i{display:flex;align-items:center;gap:6px;font-style:normal;font-family:Rajdhani,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:.5em;color:var(--mint);margin-top:4px;padding-left:.5em}
+.brand i::before,.brand i::after{content:"";width:12px;height:1px;background:var(--g3);opacity:.7}
+.nav{display:flex;gap:14px}
+.nav a{color:var(--mute);font-size:13px;text-decoration:none}
+.nav a:hover{color:var(--ink)}
+h1{font-family:Rajdhani,sans-serif;font-weight:700;font-size:28px;letter-spacing:.06em}
+.lead{color:var(--mute);font-size:14px;line-height:1.5;margin:6px 0 16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.h2{font-family:Rajdhani,sans-serif;font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:10px}
+button{font-family:inherit}
+.btnx{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:9px 12px;font:600 13px Inter,sans-serif;cursor:pointer}
+.btnx:hover{border-color:var(--g3)}
+.btnx.pri{background:rgba(31,214,122,.16);border-color:rgba(31,214,122,.55);color:var(--g1)}
+.btnx.dan{color:var(--neg2);border-color:rgba(232,41,59,.35)}
+.btnx.sm{padding:6px 10px;font-size:12px}
+.hide{display:none!important}
+.seg{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:transparent;color:var(--mute);font:600 14px Inter,sans-serif;padding:8px 10px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:rgba(31,214,122,.16);color:var(--g1)}
+.seg.mini button{font-size:12.5px;padding:6px 8px}
+.modes{margin-bottom:12px}.modes button{padding:11px 8px;font-size:15px}
+.acct{font-size:13.5px;color:var(--mute);line-height:1.5;padding:12px 14px}.acct b{color:var(--ink)}.acct a{color:var(--g1)}
+.sm{font-size:12.5px}.mut{color:var(--mute)}.pos{color:var(--pos)!important}.neg{color:var(--neg)!important}
+.ghead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+.gtitle b{font-family:Rajdhani,sans-serif;font-weight:700;font-size:20px;letter-spacing:.03em;display:block}
+.gtitle span{font-size:12.5px}
+.gclock{text-align:right}.gclock span{font:600 18px Rajdhani,sans-serif;display:block}.gclock small{font-size:11.5px;color:var(--mute)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:9px;text-align:center;min-width:0}
+.stat small{display:block;font-family:Rajdhani,sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.1em;color:var(--mute);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat strong{display:block;font-family:Rajdhani,sans-serif;font-weight:700;font-size:19px;margin-top:2px;white-space:nowrap}
+.limbar{height:6px;border-radius:4px;background:var(--line);overflow:hidden;margin-bottom:10px}.limbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--neg));transition:width .3s}
+.chartwrap{width:100%;border:1px solid var(--line);border-radius:12px;background:var(--panel2);overflow:hidden}
+#chart svg{display:block;width:100%;height:auto}
+#chart .gl{stroke:var(--line);stroke-width:1}
+#chart .ax{fill:var(--mute2);font:11px Inter,sans-serif}
+#chart .pre{fill:var(--line);opacity:.35}
+#chart .openl{stroke:var(--gold);stroke-dasharray:3 3}
+#chart .wk{stroke-width:1.2}#chart .wk.u{stroke:var(--pos)}#chart .wk.d{stroke:var(--neg)}
+#chart .cd.u{fill:var(--pos)}#chart .cd.d{fill:var(--neg)}
+#chart .lv{stroke-width:1.4;stroke-dasharray:5 3}#chart .lv.en{stroke:var(--ink)}#chart .lv.st{stroke:var(--neg)}#chart .lv.tg{stroke:var(--pos)}
+#chart .lt{font:600 11px Inter,sans-serif}#chart .lt.en{fill:var(--ink)}#chart .lt.st{fill:var(--neg)}#chart .lt.tg{fill:var(--pos)}
+#chart .mb{fill:var(--pos)}#chart .ms{fill:var(--neg)}#chart .mx{fill:var(--gold);stroke:var(--panel2);stroke-width:1.5}
+#chart .pxb{fill:var(--ink)}#chart .pxt{fill:var(--bg);font:700 11px Inter,sans-serif}
+.posline{font-size:13.5px;margin:10px 0;min-height:20px;line-height:1.5}.posline.warn{color:var(--gold)}
+.ticket{border-top:1px solid var(--line);padding-top:12px}
+.trow{display:grid;grid-template-columns:1.3fr 1fr .8fr;gap:10px}
+.lbl{font-family:Rajdhani,sans-serif;font-weight:700;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-bottom:6px;white-space:nowrap}
+.risk{font-size:13px;color:var(--mute);margin:10px 0}.risk b{font-weight:700}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.big{border:0;border-radius:12px;padding:15px;font:700 17px Inter,sans-serif;cursor:pointer;letter-spacing:.02em}
+.big.buy{background:var(--pos);color:#04130B}.big.sell{background:var(--neg);color:#fff}.big.close{grid-column:1/-1;background:var(--gold);color:#1a1300}
+.big:disabled,.btnx:disabled{opacity:.4;cursor:not-allowed}
+.play{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}.play .seg{margin-left:auto}
+.result .rtop{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+.gr{width:58px;height:58px;border-radius:14px;display:grid;place-items:center;font:700 32px Rajdhani,sans-serif;flex:none;background:var(--panel2);border:2px solid var(--line)}
+.gA{color:var(--pos);border-color:var(--pos)}.gB{color:var(--g2);border-color:var(--g2)}.gC{color:var(--gold);border-color:var(--gold)}.gD,.gF{color:var(--neg);border-color:var(--neg)}
+.result p{font-size:13.5px;color:var(--mute);margin-top:2px;line-height:1.5}
+.result .warn{color:var(--gold);margin:8px 0}.result .note{margin:10px 0}.result .note a{color:var(--g1)}
+.tlist{margin:10px 0;border-top:1px solid var(--line)}.tlist div{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}.tlist em{color:var(--mute);font-style:normal}
+.post{display:flex;gap:10px;align-items:center;margin:10px 0}
+.result>.btnx{margin-top:8px}
+.chead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.lbt .lr{display:grid;grid-template-columns:34px 1fr auto 90px;gap:8px;align-items:center;padding:9px 6px;border-bottom:1px solid var(--line);font-size:14px}
+.lbt .lr.top{background:rgba(245,197,66,.05)}
+.lbt .rk{text-align:center;font-weight:700}.lbt .nm{font-weight:600}.lbt .nm em{font-style:normal;font-size:11px;color:var(--neg);margin-left:4px}
+.lbt .wr{font-size:12px;color:var(--mute)}.lbt b{text-align:right;font-family:Rajdhani,sans-serif;font-size:17px}
+details.how summary{cursor:pointer;font-family:Rajdhani,sans-serif;font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);list-style:none}
+details.how summary::after{content:" +";color:var(--g1)}details.how[open] summary::after{content:" –"}
+.howb{margin-top:10px}.howb p{font-size:14px;line-height:1.6;color:var(--mute);margin-bottom:8px}.howb b{color:var(--ink)}
+footer{margin-top:26px;font-size:11.5px;color:var(--mute2);text-align:center;line-height:1.6}
+@media(max-width:560px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .trow{grid-template-columns:1fr 1fr}.trow>div:first-child{grid-column:1/-1}
+  .lbt .lr{grid-template-columns:28px 1fr 80px}.lbt .wr{display:none}
+  .play .seg{margin-left:0}
+}
+html{color-scheme:dark}html[data-theme="light"]{color-scheme:light}
+html[data-theme="light"] body{background:radial-gradient(600px 380px at 50% -40px,rgba(22,184,102,.10),transparent 70%),var(--bg)}
+html[data-theme="light"] .card,html[data-theme="light"] a.btn{box-shadow:0 1px 3px var(--shadow)}
+html,body,a.btn,.card,input,select,textarea,button{transition:background-color .2s,border-color .2s,color .2s}
+.thm{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}
+.thm button{all:unset;cursor:pointer;display:grid;place-items:center;width:30px;height:26px;border-radius:999px;color:var(--mute)}
+.thm button svg{width:15px;height:15px}
+.thm button[aria-pressed="true"]{background:var(--g2);color:#04130B}
+.thm button:focus-visible{outline:2px solid var(--g2);outline-offset:1px}
+.topr{display:flex;align-items:center;gap:14px}
+.brand b,.nav a{white-space:nowrap}
+@media(max-width:480px){.topr{flex-direction:column-reverse;align-items:flex-end;gap:8px}.nav{gap:12px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <a class="brand" href="/" aria-label="Bear Squad Trading home">
+      <svg viewBox="100 90 400 450" aria-hidden="true"><path d="M300 182 L236 168 L214 122 L172 114 L146 138 L148 214 L110 300 L160 402 L248 470 L300 522 L352 470 L440 402 L490 300 L452 214 L454 138 L428 114 L386 122 L364 168 Z" fill="none" style="stroke:var(--g2)" stroke-width="22"/><polygon points="196,268 280,306 270,314 202,286" style="fill:var(--red)"/><polygon points="404,268 320,306 330,314 398,286" style="fill:var(--red)"/><polygon points="283,306 317,306 317,392 348,392 300,452 252,392 283,392" style="fill:var(--red)"/></svg>
+      <span class="wm"><b>BEAR SQUAD</b><i>TRADING</i></span>
+    </a>
+    <div class="topr"><div class="thm" role="group" aria-label="Color theme"><button type="button" data-t="dark" aria-label="Dark mode" title="Dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button><button type="button" data-t="light" aria-label="Light mode" title="Light"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button></div><div class="nav"><a href="/levels/">Levels</a><a href="/">← Home</a></div></div>
+  </div>
+
+  <h1>The Gym</h1>
+  <p class="lead">Put in reps before game time. Replay a real NQ morning candle by candle, trade it like a funded account, and see how you stack up. One shot at the Daily Challenge, unlimited practice.</p>
+
+  <div class="seg modes" id="sMode"><button data-v="daily" class="on">🏆 Daily Challenge</button><button data-v="practice">🏋️ Practice</button></div>
+
+  <div class="card acct" id="acctBar"></div>
+
+  <div class="card game">
+    <div class="ghead">
+      <div class="gtitle"><b id="gTitle">Loading session…</b><span id="gSub" class="mut"></span></div>
+      <div class="gclock"><span id="gTime">–</span><small id="gLeft"></small></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><small>Balance</small><strong id="sBal">$50,000</strong></div>
+      <div class="stat"><small>Today P&amp;L</small><strong id="sPnl">$0</strong></div>
+      <div class="stat"><small>Loss limit left</small><strong id="sLim">$1,000</strong></div>
+      <div class="stat"><small>Open P&amp;L</small><strong id="sOpen">–</strong></div>
+    </div>
+    <div class="limbar"><i id="limFill"></i></div>
+    <div class="chartwrap"><div id="chart"></div></div>
+    <div class="posline" id="posLine">Flat. Set your size and stop, then pick a side.</div>
+
+    <div class="ticket" id="ticket">
+      <div class="trow">
+        <div><div class="lbl">Contracts (MNQ, $2/pt)</div><div class="seg mini" id="sQty"><button data-v="1" class="on">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="5">5</button><button data-v="10">10</button></div></div>
+        <div><div class="lbl">Stop (pts)</div><div class="seg mini" id="sStop"><button data-v="10">10</button><button data-v="20" class="on">20</button><button data-v="30">30</button><button data-v="50">50</button></div></div>
+        <div><div class="lbl">Target</div><div class="seg mini" id="sTgt"><button data-v="1">1R</button><button data-v="2" class="on">2R</button><button data-v="3">3R</button></div></div>
+      </div>
+      <div class="risk" id="riskLine"></div>
+      <div class="acts">
+        <button class="big buy" id="bBuy">Buy</button>
+        <button class="big sell" id="bSell">Sell</button>
+        <button class="big close hide" id="bClose">Close position</button>
+      </div>
+    </div>
+
+    <div class="play">
+      <button class="btnx" id="bStep">Next candle ▸</button>
+      <button class="btnx" id="bPlay">▶ Play</button>
+      <div class="seg mini" id="sSpd"><button data-v="1500" class="on">1x</button><button data-v="800">2x</button><button data-v="400">4x</button></div>
+    </div>
+  </div>
+
+  <div class="card result hide" id="result"></div>
+
+  <div class="card">
+    <div class="chead"><div class="h2" style="margin:0">Leaderboard</div><div class="seg mini" id="sLb"><button data-v="day" class="on">Today</button><button data-v="week">This week</button></div></div>
+    <p class="mut sm" id="lbDay" style="margin:-4px 0 10px"></p>
+    <div id="lb"><p class="mut sm">Loading…</p></div>
+  </div>
+
+  <details class="card how">
+    <summary>Rules of the Gym</summary>
+    <div class="howb">
+      <p><b>The account:</b> $50,000 practice account trading MNQ (Micro Nasdaq, $2 per point per contract). The session runs from the 6:30am open to 8:30am PT on a real past morning. The date stays hidden until you finish.</p>
+      <p><b>Daily loss limit: $1,000.</b> Hit it and the account is done for the day, just like a funded account. You can keep training in Practice mode.</p>
+      <p><b>Every trade has a stop.</b> You can't risk more than what's left of your daily limit on one trade. Stops and targets fill at their price; if a candle hits both, the stop counts first.</p>
+      <p><b>Daily Challenge:</b> one attempt per day, same session for everyone, resets at midnight PT. Log in to post your score to the leaderboard. <b>Practice:</b> unlimited random sessions, not ranked.</p>
+    </div>
+  </details>
+
+  <footer>Educational simulation only. Not financial advice. Replays use historical NQ futures data; results don't reflect real trading, fills or fees.</footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+var BASE="https://uqitaxzmaoqbebucfnbe.supabase.co",KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxaXRheHptYW9xYmVidWNmbmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2ODEyMTQsImV4cCI6MjExMDI1NzIxNH0.m40HivRGh4nHYxpo6iXyxWf5jenfi82083oupn-6jTY";
+var H={headers:{Authorization:"Bearer "+KEY,apikey:KEY}};
+var sb=null;try{if(window.supabase)sb=window.supabase.createClient(BASE,KEY);}catch(e){sb=null;}
+var $=function(i){return document.getElementById(i);};
+var PV=2,START=50000,LIMIT=1000,MINRISK=20;
+var user=null,G=null,timer=null;
+var cfg={mode:"daily",qty:1,stop:20,r:2,speed:1500};
+function todayPT(){return new Date().toLocaleDateString("en-CA",{timeZone:"America/Los_Angeles"});}
+function fmtT(m){var h=Math.floor(m/60),mi=m%60,ap=h<12?"a":"p",hh=h%12===0?12:h%12;return hh+":"+("0"+mi).slice(-2)+ap;}
+function usd(v,sign){var a=Math.abs(v),s=v<0?"-":(sign&&v>0?"+":"");return s+"$"+a.toLocaleString("en-US",{minimumFractionDigits:a%1?2:0,maximumFractionDigits:2});}
+function cls(v){return v>0?"pos":v<0?"neg":"";}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+var DKEY=function(){return "bs_gym_"+todayPT();};
+function saved(){try{return JSON.parse(localStorage.getItem(DKEY())||"null");}catch(e){return null;}}
+function save(o){try{localStorage.setItem(DKEY(),JSON.stringify(o));}catch(e){}}
+
+/* ---------- account ---------- */
+function nameOf(u){var n=(u&&u.user_metadata&&u.user_metadata.first_name)||"";n=String(n).trim().slice(0,24);return n||"Trader";}
+function renderAcct(){
+  $("acctBar").innerHTML=user?'<span>🔓 Signed in as <b>'+esc(nameOf(user))+'</b>. Your Daily Challenge score posts to the leaderboard.</span>'
+    :'<span>👤 You\'re training as a guest. <a href="/journal/#acct">Log in or create an account</a> to post your Daily Challenge score to the leaderboard.</span>';
+}
+/* ---------- session ---------- */
+function load(){
+  stop();$("result").classList.add("hide");$("gTitle").textContent="Loading session…";
+  var u=BASE+"/functions/v1/replay?mode="+cfg.mode+(cfg.mode==="practice"?"&i="+Math.floor(Math.random()*100000):"");
+  fetch(u,H).then(function(r){return r.json();}).then(function(d){
+    if(d.error||!d.bars)throw new Error(d.error||"no data");
+    G={d:d,bars:d.bars,i:d.startIdx-1,pos:null,trades:[],realized:0,ended:false,blown:false,started:false,marks:[]};
+    if(cfg.mode==="daily"){var s=saved();if(s){G.ended=true;G.realized=s.pnl;G.trades=s.list||[];G.blown=s.blown;G.i=G.bars.length-1;G.restored=true;}}
+    render();if(G.ended)finish(true);
+  }).catch(function(){$("gTitle").textContent="Couldn't load a session. Try again in a minute.";});
+}
+function bar(){return G.bars[G.i];}
+function remaining(){return LIMIT+G.realized;}
+function openPnl(){if(!G.pos)return 0;return (bar()[4]-G.pos.entry)*G.pos.side*PV*G.pos.qty;}
+function exitPos(px,why){
+  var p=G.pos,pnl=Math.round((px-p.entry)*p.side*PV*p.qty*100)/100;
+  G.realized=Math.round((G.realized+pnl)*100)/100;
+  G.trades.push({side:p.side,qty:p.qty,entry:p.entry,exit:px,pnl:pnl,why:why,ti:p.at,xi:G.i});
+  G.marks.push({i:G.i,px:px,t:"x"});G.pos=null;persist();
+  if(remaining()<MINRISK){G.blown=true;end();}
+}
+function persist(){
+  if(cfg.mode!=="daily"||!G.started)return;
+  var w=G.trades.filter(function(t){return t.pnl>0;}).length,best=G.trades.reduce(function(m,t){return Math.max(m,t.pnl);},-1e9);
+  save({pnl:G.realized,trades:G.trades.length,wins:w,best:G.trades.length?best:0,blown:G.blown,final:G.ended,posted:(saved()||{}).posted||false,list:G.trades});
+}
+function step(){
+  if(!G||G.ended)return;
+  if(G.i>=G.bars.length-1){end();return;}
+  G.i++;var b=bar();
+  if(G.pos){var p=G.pos;
+    if(p.side>0){if(b[3]<=p.stop)exitPos(p.stop,"stop");else if(b[2]>=p.tgt)exitPos(p.tgt,"target");}
+    else{if(b[2]>=p.stop)exitPos(p.stop,"stop");else if(b[3]<=p.tgt)exitPos(p.tgt,"target");}
+  }
+  if(!G.ended&&G.i>=G.bars.length-1)end();
+  render();
+}
+function enter(side){
+  if(!G||G.ended||G.pos)return;
+  if(G.i>=G.bars.length-1){msg("Session's over. No new trades.");return;}
+  var risk=cfg.stop*PV*cfg.qty,rem=remaining();
+  if(risk>rem){msg("That trade risks "+usd(risk)+" but you only have "+usd(rem)+" left before the daily limit. Lower your size or tighten your stop.","warn");return;}
+  var e=bar()[4];G.started=true;
+  G.pos={side:side,qty:cfg.qty,entry:e,stop:e-side*cfg.stop,tgt:e+side*cfg.stop*cfg.r,at:G.i,risk:risk};
+  G.marks.push({i:G.i,px:e,t:side>0?"b":"s"});persist();render();
+}
+function closePos(){if(G&&G.pos&&!G.ended){exitPos(bar()[4],"manual");render();}}
+function end(){
+  if(G.ended&&!G.pos){render();return;}
+  if(G.pos)exitPos(bar()[4],"session end");
+  G.ended=true;stop();persist();render();finish(false);
+}
+/* ---------- render ---------- */
+function msg(t,kind){$("posLine").className="posline "+(kind||"");$("posLine").innerHTML=t;}
+function render(){
+  if(!G)return;var d=G.d,b=bar(),open=G.i>=d.startIdx;
+  $("gTitle").textContent=(cfg.mode==="daily"?"Daily Challenge":"Practice")+" · Session #"+d.session;
+  $("gSub").textContent=" · "+(G.ended?d.weekday+" morning":"hidden date")+" · NQ 5-min";
+  $("gTime").textContent=fmtT(b[0]+5)+" PT";
+  var left=Math.max(0,(G.bars.length-1-G.i)*5);$("gLeft").textContent=G.ended?"Session over":(open?Math.floor(left/60)+"h "+left%60+"m left":"Premarket · open at 6:30a");
+  var op=openPnl(),bal=START+G.realized+op;
+  $("sBal").textContent=usd(bal);$("sPnl").textContent=usd(G.realized,true);$("sPnl").className=cls(G.realized);
+  var rem=remaining()+Math.min(0,op);$("sLim").textContent=usd(Math.max(0,rem));$("sLim").className=rem<300?"neg":"";
+  $("sOpen").textContent=G.pos?usd(op,true):"–";$("sOpen").className=cls(op);
+  $("limFill").style.width=Math.max(0,Math.min(100,(1-Math.max(0,rem)/LIMIT)*100)).toFixed(0)+"%";
+  var risk=cfg.stop*PV*cfg.qty;
+  $("riskLine").innerHTML='Risk <b class="neg">'+usd(risk)+'</b> · Target <b class="pos">'+usd(risk*cfg.r)+'</b> · '+cfg.qty+' MNQ · stop '+cfg.stop+' pts'+(risk>remaining()?' <span class="neg">· over your remaining limit</span>':'');
+  $("bBuy").classList.toggle("hide",!!G.pos);$("bSell").classList.toggle("hide",!!G.pos);$("bClose").classList.toggle("hide",!G.pos);
+  ["bBuy","bSell","bClose","bStep","bPlay"].forEach(function(id){$(id).disabled=G.ended;});
+  if(G.pos){var p=G.pos;msg((p.side>0?'<b class="pos">LONG</b>':'<b class="neg">SHORT</b>')+' '+p.qty+' MNQ @ '+p.entry.toFixed(2)+' · stop '+p.stop.toFixed(2)+' · target '+p.tgt.toFixed(2));}
+  else if(G.ended)msg(G.blown?'<b class="neg">Daily loss limit hit.</b> Account is done for today.':"Session complete.");
+  else if(!G.trades.length)msg("Flat. Set your size and stop, then pick a side. Price so far: "+b[4].toFixed(2));
+  else{var t=G.trades[G.trades.length-1];msg("Flat. Last trade: "+(t.side>0?"long":"short")+" closed at "+t.why+" for <b class=\""+cls(t.pnl)+"\">"+usd(t.pnl,true)+"</b>.");}
+  drawChart();
+}
+function drawChart(){
+  var el=$("chart"),W=Math.max(300,el.parentNode.clientWidth||600),Hh=W<500?260:320,P={l:6,r:62,t:12,b:22};
+  var bars=G.bars,n=bars.length,vis=bars.slice(0,G.i+1),cw=(W-P.l-P.r)/n;
+  var lo=Math.min.apply(null,vis.map(function(b){return b[3];})),hi=Math.max.apply(null,vis.map(function(b){return b[2];}));
+  if(G.pos){lo=Math.min(lo,G.pos.stop,G.pos.tgt);hi=Math.max(hi,G.pos.stop,G.pos.tgt);}
+  var pad=(hi-lo)*0.08||5;lo-=pad;hi+=pad;
+  var Y=function(v){return P.t+(hi-v)/(hi-lo)*(Hh-P.t-P.b);},X=function(i){return P.l+i*cw+cw/2;};
+  var g="";for(var k=0;k<=4;k++){var v=lo+(hi-lo)*k/4,y=Y(v).toFixed(1);g+='<line class="gl" x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y+'" y2="'+y+'"/><text class="ax" x="'+(W-P.r+6)+'" y="'+(+y+4)+'">'+v.toFixed(0)+'</text>';}
+  var ox=P.l+G.d.startIdx*cw;g+='<rect class="pre" x="'+P.l+'" y="'+P.t+'" width="'+(ox-P.l).toFixed(1)+'" height="'+(Hh-P.t-P.b)+'"/><line class="openl" x1="'+ox+'" x2="'+ox+'" y1="'+P.t+'" y2="'+(Hh-P.b)+'"/><text class="ax" x="'+(ox+4)+'" y="'+(P.t+10)+'">6:30 open</text>';
+  [0,G.d.startIdx,Math.floor((G.d.startIdx+n)/2),n-1].forEach(function(i){if(bars[i])g+='<text class="ax" x="'+(i===0?P.l+2:X(i)).toFixed(1)+'" y="'+(Hh-6)+'" text-anchor="'+(i===0?"start":"middle")+'">'+fmtT(bars[i][0])+'</text>';});
+  vis.forEach(function(b,i){var up=b[4]>=b[1],x=X(i),bw=Math.max(2,cw*0.66),yo=Y(b[1]),yc=Y(b[4]);
+    g+='<line class="wk '+(up?"u":"d")+'" x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+Y(b[2]).toFixed(1)+'" y2="'+Y(b[3]).toFixed(1)+'"/>';
+    g+='<rect class="cd '+(up?"u":"d")+'" x="'+(x-bw/2).toFixed(1)+'" y="'+Math.min(yo,yc).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,Math.abs(yc-yo)).toFixed(1)+'"/>';});
+  if(G.pos){var p=G.pos,x1=X(p.at),x2=W-P.r;[["en",p.entry],["st",p.stop],["tg",p.tgt]].forEach(function(l){var y=Y(l[1]).toFixed(1);g+='<line class="lv '+l[0]+'" x1="'+x1+'" x2="'+x2+'" y1="'+y+'" y2="'+y+'"/><text class="lt '+l[0]+'" x="'+(x2+6)+'" y="'+(+y+4)+'">'+l[1].toFixed(0)+'</text>';});}
+  G.marks.forEach(function(m){var x=X(m.i),y=Y(m.px);if(m.t==="b")g+='<path class="mb" d="M'+x+' '+(y+4)+' l-6 10 h12 z"/>';else if(m.t==="s")g+='<path class="ms" d="M'+x+' '+(y-4)+' l-6 -10 h12 z"/>';else g+='<circle class="mx" cx="'+x+'" cy="'+y+'" r="4"/>';});
+  var lc=bar()[4];g+='<rect class="pxb" x="'+(W-P.r+2)+'" y="'+(Y(lc)-9).toFixed(1)+'" width="'+(P.r-4)+'" height="18" rx="4"/><text class="pxt" x="'+(W-P.r+6)+'" y="'+(Y(lc)+4).toFixed(1)+'">'+lc.toFixed(2)+'</text>';
+  el.innerHTML='<svg width="'+W+'" height="'+Hh+'" viewBox="0 0 '+W+' '+Hh+'">'+g+'</svg>';
+}
+/* ---------- results + leaderboard ---------- */
+function grade(pnl,blown,n){if(blown)return["F","Hit the daily loss limit. Size down and wait for cleaner setups."];if(!n)return["–","No trades. Sitting out is a position, but the Gym is for reps."];
+  if(pnl>=500)return["A","Strong session. Protect it: this is where traders give it back."];if(pnl>=200)return["B","Solid, green and controlled."];if(pnl>=0)return["C","Green is green. Look for one more clean setup next time."];return["D","Red, but you lived to fight another day. Review your entries."];}
+function finish(restored){
+  var t=G.trades,w=t.filter(function(x){return x.pnl>0;}).length,best=t.length?Math.max.apply(null,t.map(function(x){return x.pnl;})):0;
+  var n=t.length,gr=grade(G.realized,G.blown,n),over=n>8?'<p class="warn">⚠️ '+n+' trades in 2 hours is a lot. Overtrading is how accounts die.</p>':"";
+  var s=saved(),posted=s&&s.posted;
+  var h='<div class="rtop"><div class="gr g'+gr[0]+'">'+gr[0]+'</div><div><b>'+(cfg.mode==="daily"?"Daily Challenge result":"Practice result")+'</b><p>'+gr[1]+'</p></div></div>'+
+    '<div class="stats"><div class="stat"><small>P&amp;L</small><strong class="'+cls(G.realized)+'">'+usd(G.realized,true)+'</strong></div><div class="stat"><small>Trades</small><strong>'+n+'</strong></div><div class="stat"><small>Win rate</small><strong>'+(n?Math.round(w/n*100)+"%":"–")+'</strong></div><div class="stat"><small>Best trade</small><strong class="'+cls(best)+'">'+(n?usd(best,true):"–")+'</strong></div></div>'+over+
+    (t.length?'<div class="tlist">'+t.map(function(x,k){return '<div><span>#'+(k+1)+' '+(x.side>0?"Long":"Short")+' '+x.qty+' @ '+x.entry.toFixed(2)+' → '+x.exit.toFixed(2)+' <em>('+x.why+')</em></span><b class="'+cls(x.pnl)+'">'+usd(x.pnl,true)+'</b></div>';}).join("")+'</div>':"");
+  if(cfg.mode==="daily"){
+    if(posted)h+='<p class="note">✅ Posted to today\'s leaderboard. New challenge at midnight PT. Keep training in Practice.</p>';
+    else if(!n)h+='<p class="note">No trades, so nothing to post. New challenge at midnight PT.</p>';
+    else if(user)h+='<div class="post"><button class="btnx pri" id="bPost">Post my score</button><span class="mut sm">Posts as '+esc(nameOf(user))+'</span></div>';
+    else h+='<p class="note"><a href="/journal/#acct">Log in or create an account</a>, then come back to post this score. It\'s saved on this device until midnight PT.</p>';
+    h+='<button class="btnx" id="bGoPractice">Train in Practice mode</button>';
+  }else h+='<button class="btnx pri" id="bAgain">New practice session</button>';
+  $("result").innerHTML=h;$("result").classList.remove("hide");
+  if($("bPost"))$("bPost").onclick=postScore;
+  if($("bGoPractice"))$("bGoPractice").onclick=function(){setMode("practice");};
+  if($("bAgain"))$("bAgain").onclick=load;
+  if(!restored)$("result").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function postScore(){
+  var s=saved();if(!s||!user||!sb)return;var b=$("bPost");b.disabled=true;b.textContent="Posting…";
+  var row={day:todayPT(),name:nameOf(user),pnl:Math.max(-1000,s.pnl),trades:Math.min(40,s.trades),wins:s.wins,best:s.best,blown:!!s.blown};
+  sb.from("gym_scores").insert(row).then(function(r){
+    if(r.error&&!/duplicate|23505/i.test(r.error.message+r.error.code)){b.disabled=false;b.textContent="Post my score";alert0("Couldn't post: "+r.error.message);return;}
+    s.posted=true;save(s);finish(true);loadLb();});
+}
+function alert0(t){var p=document.createElement("p");p.className="warn";p.textContent=t;$("result").appendChild(p);}
+var lbMode="day";
+function weekStart(){var d=new Date(todayPT()+"T12:00:00Z"),wd=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-wd);return d.toISOString().slice(0,10);}
+function loadLb(){
+  var day=todayPT(),wk=weekStart(),url;
+  if(lbMode==="day"){$("lbDay").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric",timeZone:"America/Los_Angeles"})+" · Daily Challenge · resets midnight PT";
+    url=BASE+"/rest/v1/gym_scores?day=eq."+day+"&select=name,pnl,trades,wins,blown&order=pnl.desc&limit=25";}
+  else{$("lbDay").textContent="Week of "+new Date(wk+"T12:00:00Z").toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"UTC"})+" · total P&L of daily challenges, Mon–Fri";
+    url=BASE+"/rest/v1/gym_weekly?week=eq."+wk+"&select=name,pnl,days,trades,wins&order=pnl.desc&limit=25";}
+  fetch(url,H).then(function(r){return r.ok?r.json():[];}).then(function(rows){
+    if(!rows.length){$("lb").innerHTML='<p class="mut sm">No scores yet '+(lbMode==="day"?"today":"this week")+'. Be the first on the board.</p>';return;}
+    $("lb").innerHTML='<div class="lbt">'+rows.map(function(r,i){var sub=lbMode==="day"?r.trades+' trades · '+Math.round(r.wins/Math.max(1,r.trades)*100)+'%':r.days+(r.days===1?' day':' days')+' · '+r.trades+' trades';
+      return '<div class="lr'+(i<3?" top":"")+'"><span class="rk">'+(i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1)+'</span><span class="nm">'+esc(r.name)+(r.blown?' <em>blown</em>':'')+'</span><span class="wr">'+sub+'</span><b class="'+cls(+r.pnl)+'">'+usd(+r.pnl,true)+'</b></div>';}).join("")+'</div>';
+  }).catch(function(){$("lb").innerHTML='<p class="mut sm">Leaderboard unavailable right now.</p>';});
+}
+/* ---------- controls ---------- */
+function stop(){if(timer){clearInterval(timer);timer=null;}$("bPlay").textContent="▶ Play";}
+function togglePlay(){if(timer){stop();return;}if(!G||G.ended)return;timer=setInterval(step,cfg.speed);$("bPlay").textContent="❚❚ Pause";}
+function setMode(m){cfg.mode=m;document.querySelectorAll("#sMode button").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-v")===m);});load();}
+function seg(id,key,num){$(id).querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){cfg[key]=num?+b.getAttribute("data-v"):b.getAttribute("data-v");$(id).querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});if(key==="speed"&&timer){stop();togglePlay();}render();});});}
+document.querySelectorAll("#sMode button").forEach(function(b){b.addEventListener("click",function(){setMode(b.getAttribute("data-v"));});});
+$("sLb").querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){lbMode=b.getAttribute("data-v");$("sLb").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});loadLb();});});
+seg("sQty","qty",1);seg("sStop","stop",1);seg("sTgt","r",1);seg("sSpd","speed",1);
+$("bBuy").onclick=function(){enter(1);};$("bSell").onclick=function(){enter(-1);};$("bClose").onclick=closePos;$("bStep").onclick=step;$("bPlay").onclick=togglePlay;
+document.addEventListener("keydown",function(e){if(/INPUT|TEXTAREA/.test((e.target||{}).tagName))return;var k=e.key.toLowerCase();
+  if(k==="b")enter(1);else if(k==="s")enter(-1);else if(k==="c")closePos();else if(k==="arrowright"||k==="n"){e.preventDefault();step();}else if(k===" "){e.preventDefault();togglePlay();}});
+var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(function(){if(G)drawChart();},150);});
+window.addEventListener("bs-theme",function(){if(G)drawChart();});
+renderAcct();
+if(sb){sb.auth.getSession().then(function(r){var s=r.data&&r.data.session;user=s?s.user:null;renderAcct();if(G&&G.ended)finish(true);});
+  sb.auth.onAuthStateChange(function(ev,s){user=s?s.user:null;renderAcct();});}
+load();loadLb();setInterval(loadLb,120000);
+})();
+</script>
+<script>
+(function(){var root=document.documentElement,meta=document.querySelector('meta[name="theme-color"]');
+function apply(t){if(t==="light")root.setAttribute("data-theme","light");else root.removeAttribute("data-theme");
+ try{localStorage.setItem("bs_theme",t);}catch(e){}
+ if(meta)meta.setAttribute("content",t==="light"?"#F4F7F5":"#07090A");
+ document.querySelectorAll(".thm button").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-t")===t?"true":"false");});
+ window.dispatchEvent(new Event("bs-theme"));}
+document.querySelectorAll(".thm button").forEach(function(b){b.addEventListener("click",function(){apply(b.getAttribute("data-t"));});});
+apply(root.getAttribute("data-theme")==="light"?"light":"dark");})();
+</script>
+</body>
+</html>
