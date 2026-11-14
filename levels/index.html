@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gamma Levels · NQ &amp; ES · Bear Squad Trading</title>
-<meta name="description" content="Free NQ and ES gamma levels: Call Wall, Put Wall and Gamma Flip from options dealer positioning. Updated every 5 minutes. From Bear Squad Trading.">
+<meta name="description" content="Free NQ and ES gamma levels: Call Wall, Put Wall and Gamma Flip from options dealer positioning. Updated every 5 minutes, with an intraday timeline. From Bear Squad Trading.">
 <meta name="theme-color" content="#07090A">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%22100%2090%20400%20450%22%3E%3Crect%20x%3D%22100%22%20y%3D%2290%22%20width%3D%22400%22%20height%3D%22450%22%20fill%3D%22%2307090A%22/%3E%3Cpath%20d%3D%22M300%20182%20L236%20168%20L214%20122%20L172%20114%20L146%20138%20L148%20214%20L110%20300%20L160%20402%20L248%20470%20L300%20522%20L352%20470%20L440%20402%20L490%20300%20L452%20214%20L454%20138%20L428%20114%20L386%20122%20L364%20168%20Z%22%20fill%3D%22none%22%20stroke%3D%22%231FD67A%22%20stroke-width%3D%2222%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -92,6 +92,18 @@ footer{margin-top:26px;font-size:11.5px;color:var(--mute2);text-align:center;lin
   .bar{grid-template-columns:1fr}
   .levels{gap:6px}.lv{padding:12px 6px}.lv strong{font-size:20px}.lv small{font-size:10.5px;letter-spacing:.08em}.lv em{font-size:11px}
 }
+.stamp{display:block;font-size:12.5px;color:var(--mute);margin:-2px 0 10px;flex-wrap:wrap;line-height:1.4}
+.stamp b{color:var(--ink);font-weight:600}
+.sdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--mute2);margin-right:7px;vertical-align:1px}
+.stamp.live .sdot{background:var(--g2);box-shadow:0 0 0 0 rgba(31,214,122,.6);animation:ping 1.8s infinite}
+.stamp.past .sdot{background:var(--gold)}
+.stamp.past{color:var(--gold)}
+@keyframes ping{70%{box-shadow:0 0 0 7px rgba(31,214,122,0)}100%{box-shadow:0 0 0 0 rgba(31,214,122,0)}}
+.hide{display:none!important}
+.sub0{font-size:13px;color:var(--mute);line-height:1.5;margin-top:8px}.sub0 b{color:var(--ink)}
+.tl input[type=range]{width:100%;accent-color:var(--g2);height:28px;margin-top:4px;cursor:pointer}
+.tll{display:flex;justify-content:space-between;font-size:11.5px;color:var(--mute2);margin-top:2px}
+.tll span:last-child{color:var(--g1);font-weight:600}
 html{color-scheme:dark}html[data-theme="light"]{color-scheme:light}
 html[data-theme="light"] body{background:radial-gradient(600px 380px at 50% -40px,rgba(22,184,102,.10),transparent 70%),var(--bg)}
 html[data-theme="light"] .card,html[data-theme="light"] a.btn{box-shadow:0 1px 3px var(--shadow)}
@@ -124,6 +136,8 @@ html,body,a.btn,.card,input,select,textarea,button{transition:background-color .
     <div class="seg" id="sE"><button data-v="all" class="on">All expirations</button><button data-v="next">Next only</button></div>
   </div>
 
+  <div class="stamp" id="stamp"><span class="sdot"></span><span id="stampT">Loading…</span></div>
+
   <div class="card regime" id="regime"><div class="skel">Loading levels…</div></div>
 
   <div class="levels" id="levels"></div>
@@ -133,6 +147,11 @@ html,body,a.btn,.card,input,select,textarea,button{transition:background-color .
     <div class="chartwrap"><div id="chart"></div></div>
     <div class="legend"><span><i class="lgG"></i>Green: price slows / pins</span><span><i class="lgR"></i>Red: moves speed up</span><span><i class="lgP"></i>Price</span><span><i class="lgF"></i>Flip</span></div>
     <div class="tip" id="tip">Tap a bar to see the level.</div>
+  </div>
+
+  <div class="card tl" id="tlCard">
+    <div class="chead"><div class="h2" style="margin:0">Timeline</div><button class="btnx sm hide" id="tlLive">Back to live</button></div>
+    <div id="tlBody"></div>
   </div>
 
   <details class="card how">
@@ -158,7 +177,7 @@ html,body,a.btn,.card,input,select,textarea,button{transition:background-color .
 var API="https://uqitaxzmaoqbebucfnbe.supabase.co/functions/v1/levels";
 var KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxaXRheHptYW9xYmVidWNmbmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2ODEyMTQsImV4cCI6MjExMDI1NzIxNH0.m40HivRGh4nHYxpo6iXyxWf5jenfi82083oupn-6jTY";
 var $=function(i){return document.getElementById(i);};
-var st={m:"NQ",e:"all",z:"near",sel:null},cache={},timer=null;
+var st={m:"NQ",e:"all",z:"near",sel:null,ti:null},cache={},hist={},nextAt=0;
 var PV={NQ:{tick:0.25,dol:20,name:"NQ",src:"QQQ",bucket:1,near:0.035},ES:{tick:0.25,dol:50,name:"ES",src:"SPX",bucket:25,near:0.025}};
 function rnd(x){return Math.round(x*4)/4;}
 function fmt(x){if(x==null)return "–";var v=rnd(x);return v.toLocaleString("en-US",{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2});}
@@ -168,12 +187,57 @@ function load(m,force){
   if(!force&&cache[m]&&Date.now()-cache[m].t<240000)return Promise.resolve(cache[m].d);
   return fetch(API+"?m="+m,{headers:{Authorization:"Bearer "+KEY,apikey:KEY}}).then(function(r){return r.json();}).then(function(d){if(d.error)throw new Error(d.error);cache[m]={t:Date.now(),d:d};return d;});
 }
+function loadHist(m,force){
+  if(!force&&hist[m]&&Date.now()-hist[m].t<240000)return Promise.resolve(hist[m].d);
+  var u=API.replace("/functions/v1/levels","/rest/v1/gex_snapshots")+"?market=eq."+m+"&select=taken_at,spot:data->spot,fut:data->fut,a:data->all,n:data->next&order=taken_at.desc&limit=60";
+  return fetch(u,{headers:{Authorization:"Bearer "+KEY,apikey:KEY}}).then(function(r){return r.ok?r.json():[];}).then(function(rows){
+    if(!Array.isArray(rows))rows=[];
+    var day=function(t){return new Date(t).toLocaleDateString("en-CA",{timeZone:"America/Los_Angeles"});};
+    var d0=rows.length?day(rows[0].taken_at):null;
+    rows=rows.filter(function(r){return day(r.taken_at)===d0;}).reverse().map(function(r){return {spot:r.spot,fut:r.fut,generated:r.taken_at,all:r.a,next:r.n,snap:true};});
+    hist[m]={t:Date.now(),d:rows};return rows;}).catch(function(){return [];});
+}
+function ptTime(t){return new Date(t).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"});}
+function current(){
+  var live=cache[st.m]&&cache[st.m].d,h=(hist[st.m]&&hist[st.m].d)||[];
+  if(st.ti!=null&&h[st.ti])return h[st.ti];return live;
+}
+function stamp(){
+  var d=current();if(!d){$("stampT").textContent="Loading…";return;}
+  var el=$("stamp");
+  if(d.snap){el.className="stamp past";$("stampT").innerHTML="Viewing <b>"+ptTime(d.generated)+" PT</b> snapshot";return;}
+  var s=Math.max(0,Math.round((nextAt-Date.now())/1000));
+  el.className="stamp live";$("stampT").innerHTML="Live · updated <b>"+ptTime(d.generated)+" PT</b> · next refresh "+Math.floor(s/60)+":"+("0"+s%60).slice(-2)+" · options data delayed ~15 min";
+}
+function timeline(){
+  var h=(hist[st.m]&&hist[st.m].d)||[],live=cache[st.m]&&cache[st.m].d;
+  $("tlLive").classList.toggle("hide",st.ti==null);
+  if(h.length<2){$("tlBody").innerHTML='<p class="sub0">Replays the day in 15-minute snapshots so you can watch the walls move. It fills in during market hours (weekdays, 4am–2pm PT)'+(h.length===1?': first snapshot saved at '+ptTime(h[0].generated)+' PT.':'.')+'</p>';return;}
+  var n=h.length,val=st.ti==null?n:st.ti;
+  var lbls=[ptTime(h[0].generated),ptTime(h[Math.floor((n-1)/2)].generated),"Live"];
+  $("tlBody").innerHTML='<input type="range" id="tlR" min="0" max="'+n+'" step="1" value="'+val+'" aria-label="Timeline">'+
+    '<div class="tll"><span>'+lbls[0]+'</span><span>'+lbls[1]+'</span><span>'+lbls[2]+'</span></div>'+
+    '<p class="sub0" id="tlNow"></p>';
+  var R=$("tlR");
+  var show=function(){var v=+R.value;st.ti=v>=n?null:v;var d=current();
+    $("tlNow").innerHTML=st.ti==null?"Showing <b>live</b> levels. Drag left to replay today.":"Showing <b>"+ptTime(d.generated)+" PT</b>. "+trend(h,st.ti);
+    $("tlLive").classList.toggle("hide",st.ti==null);if(d)draw(d,true);stamp();};
+  R.addEventListener("input",show);
+  $("tlNow").innerHTML=st.ti==null?"Showing <b>live</b> levels. Drag left to replay today.":"";
+}
+function trend(h,i){
+  var g=function(d){return st.e==="all"?d.all:d.next;},a=g(h[0]),b=g(h[i]),r=h[i].fut&&h[i].fut.price?h[i].fut.price/h[i].spot:1;
+  if(!a||!b||i===0)return "First snapshot of the day.";
+  var parts=[];if(a.callWall!==b.callWall)parts.push("Call Wall moved "+(b.callWall>a.callWall?"up":"down")+" to "+fmt(b.callWall*r));
+  if(a.putWall!==b.putWall)parts.push("Put Wall moved "+(b.putWall>a.putWall?"up":"down")+" to "+fmt(b.putWall*r));
+  return parts.length?"Since the first snapshot: "+parts.join(", ")+".":"Walls unchanged since the first snapshot.";
+}
 function conv(d){var r=d.fut&&d.fut.price?d.fut.price/d.spot:null;return r;}
 function render(){
   $("regime").innerHTML='<div class="skel">Loading levels…</div>';
-  load(st.m).then(draw).catch(function(){$("regime").innerHTML='<div class="err">Couldn\'t load levels right now. Try again in a minute.</div>';$("levels").innerHTML="";$("chart").innerHTML="";});
+  Promise.all([load(st.m),loadHist(st.m)]).then(function(){nextAt=cache[st.m].t+300000;st.ti=null;draw(current());timeline();stamp();}).catch(function(){$("regime").innerHTML='<div class="err">Couldn\'t load levels right now. Try again in a minute.</div>';$("levels").innerHTML="";$("chart").innerHTML="";});
 }
-function draw(d){
+function draw(d,keepTl){
   var p=PV[st.m],g=st.e==="all"?d.all:d.next,r=conv(d),F=function(k){return r?k*r:k;};
   var px=r?d.fut.price:d.spot,unit=r?p.name:p.src;
   var flip=g.flip,above=flip!=null?d.spot>=flip:g.netGex>=0;
@@ -215,12 +279,13 @@ function drawChart(rows,spot,flip,F,p){
     $("tip").innerHTML='<b>'+p.name+' ~'+fmt(F(r[0]))+'</b> <span class="mut">('+p.src+' '+r[0]+')</span> · '+(r[1]>=0?'<b class="pos">Green</b>: price tends to slow down here':'<b class="neg">Red</b>: moves tend to speed up here')+' · '+money(r[1])+' gamma per 1% move';
     drawChart(rows,spot,flip,F,p);});});
 }
-function seg(id,key){$(id).querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){st[key]=b.getAttribute("data-v");st.sel=null;$(id).querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});$("tip").textContent="Tap a bar to see the level.";render();});});}
+function seg(id,key){$(id).querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){st[key]=b.getAttribute("data-v");st.sel=null;$(id).querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});$("tip").textContent="Tap a bar to see the level.";if(key==="m")render();else{draw(current());if(key==="e")timeline();}});});}
 seg("sM","m");seg("sE","e");seg("sZ","z");
 render();
-setInterval(function(){if(document.visibilityState==="visible")load(st.m,true).then(draw).catch(function(){});},300000);
-var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(function(){if(cache[st.m])draw(cache[st.m].d);},200);});
-window.addEventListener("bs-theme",function(){if(cache[st.m])draw(cache[st.m].d);});
+setInterval(function(){stamp();if(document.visibilityState==="visible"&&Date.now()>=nextAt&&cache[st.m]){nextAt=Date.now()+300000;Promise.all([load(st.m,true),loadHist(st.m,true)]).then(function(){nextAt=cache[st.m].t+300000;if(st.ti==null){draw(current());timeline();}stamp();}).catch(function(){});}},1000);
+$("tlLive").addEventListener("click",function(){st.ti=null;draw(current());timeline();stamp();});
+var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(function(){if(current())draw(current());},200);});
+window.addEventListener("bs-theme",function(){if(current())draw(current());});
 })();
 </script>
 <script>
