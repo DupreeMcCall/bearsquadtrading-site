@@ -169,17 +169,17 @@ html,body,a.btn,.card,input,select,textarea,button{transition:background-color .
   </div>
 
   <h1>Trade Journal</h1>
-  <p class="lead">Log every trade and see your month at a glance. Free forever. Create a free account to save your journal and pick it up on any device.</p>
+  <p class="lead">Log every trade and see your month at a glance. Create an account to save your journal and pick it up on any device.</p>
 
   <div class="card acct" id="acct">
     <div id="aGuest">
       <div class="gbar"><span class="gdot"></span><b>Guest mode:</b>&nbsp;try everything, but nothing is saved. Refreshing or leaving this page erases your trades.</div>
       <div class="acts" style="margin-top:10px">
-        <button class="btnx pri" id="showSignup">Create free account</button>
+        <button class="btnx pri" id="showSignup">Create account</button>
         <button class="btnx" id="showLogin">Log in</button>
       </div>
       <div id="aForm" class="hide" style="margin-top:14px">
-        <div class="h2" id="aTitle">Create your free account</div>
+        <div class="h2" id="aTitle">Create your account</div>
         <div class="row" id="aNameRow"><div style="grid-column:1/-1"><label for="aName">First name</label><input id="aName" autocomplete="given-name" placeholder="First name"></div></div>
         <div class="row">
           <div><label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="email" placeholder="you@email.com"></div>
@@ -303,7 +303,7 @@ html,body,a.btn,.card,input,select,textarea,button{transition:background-color .
   </div>
   <div class="msg toast" id="msg"></div>
 
-  <a class="cta" href="/">Join the Bear Squad Discord<small>Free daily game plans, market news and trade reviews</small></a>
+  <a class="cta" href="/">Join the Bear Squad Discord<small>Daily game plans, market news and trade reviews</small></a>
 
   <footer>Educational tool only. Not financial advice. Options P&amp;L uses a 100-share multiplier. Futures point values: MNQ $2, NQ $20, MES $5, ES $50, M2K $5, RTY $50, MGC $10, GC $100, MCL $100, CL $1,000 per point.</footer>
 </main>
@@ -421,7 +421,7 @@ function renderDay(){
   list.forEach(function(t){var p=tradePnl(t),dir=t.dir?t.dir.charAt(0).toUpperCase()+t.dir.slice(1):"";
     var det=t.type==="futures"?(t.qty||"?")+" ct · "+(t.entry||"?")+" → "+(t.exit||"?"):(t.qty||"?")+"x · $"+(t.entry||"?")+" → $"+(t.exit||"?");
     h+='<div class="tr"><div class="tl"><b>'+esc((t.ticker||"").toUpperCase())+" "+esc(dir)+"</b> <span>"+esc(det)+(t.setup?" · "+esc(t.setup):"")+"</span>"+(t.notes?'<br><span>'+esc(t.notes)+"</span>":"")+'</div><div><div class="tp '+cls(p)+'">'+(isFinite(p)?money(p,true):"check inputs")+'</div><div class="ta"><button class="btnx sm" data-edit="'+t.id+'">Edit</button><button class="btnx sm dan" data-del="'+t.id+'">Delete</button></div></div></div>';});
-  if(!user&&db.trades.length)h+='<div class="nudge">These trades are <b>not saved</b>. Create a free account to keep your journal.<br><button class="btnx pri sm" data-signup="1">Create free account</button></div>';
+  if(!user&&db.trades.length)h+='<div class="nudge">These trades are <b>not saved</b>. Create an account to keep your journal.<br><button class="btnx pri sm" data-signup="1">Create account</button></div>';
   $("dList").innerHTML=h;
   $("ntB").textContent=info.noTrade?"Unmark no-trade day":"Mark no-trade day";$("ntB").classList.toggle("hide",list.length>0);
   if(document.activeElement!==$("dNote"))$("dNote").value=info.note||"";
@@ -525,9 +525,9 @@ function saveTrade(){var t=readForm();
 /* ===== accounts ===== */
 var mode="signup";
 function showAuth(m){mode=m;$("aForm").classList.remove("hide");var su=m==="signup";
-  $("aTitle").textContent=su?"Create your free account":"Log in to your journal";
+  $("aTitle").textContent=su?"Create your account":"Log in to your journal";
   $("aNameRow").classList.toggle("hide",!su);$("aAgeRow").classList.toggle("hide",!su);$("aForgot").classList.toggle("hide",su);
-  $("aGo").textContent=su?"Create account":"Log in";$("aSwap").textContent=su?"I already have an account":"Create a free account instead";
+  $("aGo").textContent=su?"Create account":"Log in";$("aSwap").textContent=su?"I already have an account":"Create an account instead";
   $("aPass").setAttribute("autocomplete",su?"new-password":"current-password");$("aMsg").textContent="";
   $("acct").scrollIntoView({behavior:"smooth",block:"start"});setTimeout(function(){(su?$("aName"):$("aEmail")).focus();},300);}
 function aMsg(t,bad){$("aMsg").textContent=t;$("aMsg").className="msg "+(bad?"neg":"pos");}
