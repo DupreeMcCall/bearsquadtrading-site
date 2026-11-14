@@ -88,6 +88,8 @@ h1 .hl{background:linear-gradient(90deg,var(--g1),var(--g2) 60%,var(--mint));-we
 .sess span{font:500 11px "JetBrains Mono",monospace;color:var(--mute2)}
 .sess .on{border-color:rgba(31,214,122,.55);background:rgba(31,214,122,.09)}
 .sess .on b{color:var(--g1)}
+.sess .cd{display:block;font:500 11px "JetBrains Mono",monospace;font-style:normal;color:var(--mute);margin-top:5px;white-space:nowrap}.sess .cd b{display:inline;font-size:11px;color:var(--ink);font-weight:600}.sess .on .cd b{color:var(--g1)}
+@media(max-width:400px){.sess .cd{font-size:10px}.sess .cd b{font-size:10px}.sess div{padding:8px 7px}}
 .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .pm{border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:var(--panel2)}
 .pm small{display:block;font:600 10.5px "JetBrains Mono",monospace;letter-spacing:.12em;color:var(--mute2);text-transform:uppercase}
@@ -430,7 +432,7 @@ function tick(){
   else if(m>=390&&m<780&&t.wd!=="Sat"&&t.wd!=="Sun"){st='New York session live<small>Regular hours close at 1:00pm PT · '+dur(780-m)+' left</small>';}
   else{st='Futures open · overnight<small>NY open in '+dur(nextRth(t))+' (6:30am PT)</small>';}
   $("pStatus").innerHTML=st;
-  $("pSess").innerHTML=SESS.map(function(s){var on=o&&inSess(m,s);return '<div class="'+(on?"on":"")+'"><b>'+s[0]+'</b><span>'+s[1]+'</span></div>';}).join("");
+  sessTick();
   var h=o?t.h:6,r=PULSE.nq[h]||0,dol=Math.round(r*20).toLocaleString("en-US");
   $("pWinL").textContent=o?"NQ "+fmtT(h*60)+"–"+fmtT(h*60+60):"NQ at the open";
   $("pNq").textContent=Math.round(r)+" pts";$("pNqD").textContent="avg move · $"+dol+" / NQ";
@@ -440,7 +442,20 @@ function tick(){
   var sp=hrs.map(function(x){return '<i class="'+(o&&x===t.h?"now":"")+'" style="height:'+Math.max(6,PULSE.nq[x]/mx*100).toFixed(0)+'%"></i>';}).join("");
   $("pSpark").innerHTML=sp;$("tvBars").innerHTML=sp;$("tvNow").textContent=o&&t.h>=5&&t.h<=13?fmtT(t.h*60):"6–7a peak";
 }
-tick();setInterval(tick,30000);
+/* live session countdowns (PT minute-of-week windows) */
+var WIN={Asia:[0,1,2,3,4].map(function(d){return [d*1440+960,d*1440+1500];}),London:[1,2,3,4,5].map(function(d){return [d*1440,d*1440+510];}),"New York":[1,2,3,4,5].map(function(d){return [d*1440+390,d*1440+780];})};
+function hms(sec){if(sec>=86400){var d=Math.floor(sec/86400),hh=Math.floor(sec%86400/3600),mm=Math.floor(sec%3600/60);return d+"d "+hh+"h "+("0"+mm).slice(-2)+"m";}var h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return (h?h+"h ":"")+(h||m?("0"+m).slice(-2)+"m ":"")+("0"+s).slice(-2)+"s";}
+function sessTick(){
+  var t=pt(),nowS=(WD.indexOf(t.wd)*1440+t.h*60+t.m)*60+t.s;
+  $("pSess").innerHTML=SESS.map(function(s){
+    var ws=WIN[s[0]],on=null,next=null;
+    ws.forEach(function(w){[0,10080].forEach(function(off){var a=(w[0]+off)*60,b=(w[1]+off)*60;
+      if(nowS>=a&&nowS<b)on=b;if(a>nowS&&(next==null||a<next))next=a;});});
+    var txt=on!=null?'closes in <b>'+hms(on-nowS)+'</b>':'opens in <b>'+hms(next-nowS)+'</b>';
+    return '<div class="'+(on!=null?"on":"")+'"><b>'+s[0]+'</b><span>'+s[1]+'</span><i class="cd">'+txt+'</i></div>';
+  }).join("");
+}
+tick();setInterval(tick,30000);setInterval(sessTick,1000);
 var T=PULSE.tick.map(function(x){return "<span>"+x+"</span>";}).join("");$("tick").innerHTML=T+T;
 $("yr").textContent=new Date().getFullYear();
 })();
