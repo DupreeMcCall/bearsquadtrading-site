@@ -410,7 +410,7 @@ function renderBest(rows){
   var chop=day.filter(function(r){return r.vol>0;}).slice().sort(function(a,b){return a.trend-b.trend||a.rng-b.rng;}).slice(0,3);
   var mx=top.length?top[0].rng:1;
   var h=top.map(function(r,i){return '<button class="brow" data-m="'+r.m+'"><span class="bn">'+(i+1)+'</span><span class="bt">'+slotLbl(r.m)+'</span><span class="bb"><i style="width:'+Math.round(r.rng/mx*100)+'%"></i></span><span class="bv">'+pts(r.rng)+'</span><span class="bx">'+r.trend+'% trend</span></button>';}).join("");
-  h+='<div class="chop"><b>Choppiest windows:</b> '+chop.map(function(r){return slotLbl(r.m)+" ("+r.trend+"% trend)";}).join(", ")+'. Wicks and fakeouts are more common here.</div>';
+  h+='<div class="chop"><b>Choppiest windows:</b> '+chop.map(function(r){return slotLbl(r.m)+" ("+r.trend+"% trend)";}).join(", ")+'. Wicks and false breakouts are more common here.</div>';
   $("best").innerHTML=h;
   $("best").querySelectorAll(".brow").forEach(function(b){b.addEventListener("click",function(){st.sel=+b.getAttribute("data-m");var rws=rowsFor();renderChart(rws);renderDetail(rws);document.querySelector(".chartwrap").scrollIntoView({behavior:"smooth",block:"center"});});});
   $("bestNote").textContent="Ranked by average range in the "+(st.ses==="rth"?"day session":"full 24 hours")+" on the "+st.tf.toUpperCase()+" view. More range = more room to work with.";
@@ -438,7 +438,7 @@ function renderOR(){
   var o=D.h1[st.sym].or[st.or],p=PV[st.sym],len=o.len;
   $("orNote").textContent="The high and low of the first "+len+" minutes after the 6:30am open, and how often price breaks them before 1pm. Last "+o.n+" sessions.";
   $("orStats").innerHTML=[["Breaks high",o.hiBrk+"%"],["Breaks low",o.loBrk+"%"],["Breaks both",o.both+"%"],["Avg OR size",pts(o.orRng)]].map(function(a){return '<div class="stat"><small>'+a[0]+'</small><strong>'+a[1]+'</strong></div>';}).join("");
-  $("orText").innerHTML="When it breaks, the <b>"+(o.hiFirst>=50?"high":"low")+"</b> goes first <b>"+(o.hiFirst>=50?o.hiFirst:100-o.hiFirst)+"%</b> of the time. "+(o.both>=40?"Both sides break on "+o.both+"% of days, so the first break is often a fakeout. Waiting for a retest helps.":"Only "+o.both+"% of days break both sides, so the first clean break has tended to hold.")+" A typical "+len+"-min range is "+pts(o.medOr)+" ("+money(o.medOr*p[0])+" on 1 "+p[2]+").";
+  $("orText").innerHTML="When it breaks, the <b>"+(o.hiFirst>=50?"high":"low")+"</b> goes first <b>"+(o.hiFirst>=50?o.hiFirst:100-o.hiFirst)+"%</b> of the time. "+(o.both>=40?"Both sides break on "+o.both+"% of days, so the first break is often a false breakout. Waiting for a retest helps.":"Only "+o.both+"% of days break both sides, so the first clean break has tended to hold.")+" A typical "+len+"-min range is "+pts(o.medOr)+" ("+money(o.medOr*p[0])+" on 1 "+p[2]+").";
 }
 
 function renderHeat(){
