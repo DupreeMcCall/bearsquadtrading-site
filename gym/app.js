@@ -167,7 +167,7 @@ function emaArr(p){if(!G||!G.bars)return null;var key=G.d.session+"|"+cfg.mode+"
 function lineDefs(){var a=EMAS.map(function(e){return {k:"m"+e.id,c:e.c,w:1,on:e.on,n:"EMA "+e.p,arr:e.on?emaArr(e.p):null};});
   a.push({k:"vwap",c:VW.c,w:2,on:VW.on,n:"VWAP",arr:G&&G.d.ind?G.d.ind.vwap:null});return a;}
 function syncLines(){if(!CH)return;var defs=lineDefs(),keep={};
-  defs.forEach(function(d){keep[d.k]=1;if(!LS[d.k])LS[d.k]=CH.addSeries(LW.LineSeries,{priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false,autoscaleInfoProvider:function(){return null;}});
+  defs.forEach(function(d){keep[d.k]=1;if(!LS[d.k])LS[d.k]=CH.addSeries(LW.LineSeries,{priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false});
     LS[d.k].applyOptions({color:d.c,lineWidth:d.w,visible:d.on});
     if(G&&G.bars){var vis=G.bars.slice(0,G.i+1);LS[d.k].setData(d.on&&d.arr?vis.map(function(b,i){return {time:tOf(b[0]),value:d.arr[i]};}):[]);}});
   Object.keys(LS).forEach(function(k){if(!keep[k]){CH.removeSeries(LS[k]);delete LS[k];}});}
@@ -175,10 +175,10 @@ function initChart(){
   if(CH||!LW)return;var c=tvColors(),el=$("chart");
   CH=LW.createChart(el,{autoSize:true,layout:{background:{type:"solid",color:c.bg},textColor:c.text,fontFamily:"-apple-system,BlinkMacSystemFont,Trebuchet MS,Roboto,Ubuntu,sans-serif",fontSize:11,attributionLogo:true},
     grid:{vertLines:{color:c.grid},horzLines:{color:c.grid}},crosshair:{mode:0,vertLine:{color:c.cross,labelBackgroundColor:"#2a2e39"},horzLine:{color:c.cross,labelBackgroundColor:"#2a2e39"}},
-    rightPriceScale:{borderColor:c.border},timeScale:{borderColor:c.border,timeVisible:true,secondsVisible:false,rightOffset:8,barSpacing:9,minBarSpacing:3,
+    rightPriceScale:{borderColor:c.border},handleScroll:{mouseWheel:false,pressedMouseMove:true,horzTouchDrag:true,vertTouchDrag:false},handleScale:{mouseWheel:false,pinch:true,axisPressedMouseMove:true},timeScale:{borderColor:c.border,timeVisible:true,secondsVisible:false,rightOffset:8,barSpacing:9,minBarSpacing:3,
       tickMarkFormatter:function(t){return fmtT(mOf(t)).replace(/([ap])$/,"");}},
     localization:{timeFormatter:function(t){return fmtT(mOf(t))+" PT";},priceFormatter:function(p){return p.toFixed(2);}}});
-  CS=CH.addSeries(LW.CandlestickSeries,{upColor:UP,downColor:DN,borderVisible:false,wickUpColor:UP,wickDownColor:DN,priceLineColor:BLUE,priceLineStyle:2});
+  CS=CH.addSeries(LW.CandlestickSeries,{autoscaleInfoProvider:function(orig){var r=orig();if(r&&r.priceRange&&G&&G.pos){var ps=[G.pos.stop,G.pos.tgt,G.pos.entry].filter(function(x){return x!=null;});r.priceRange.minValue=Math.min.apply(null,[r.priceRange.minValue].concat(ps));r.priceRange.maxValue=Math.max.apply(null,[r.priceRange.maxValue].concat(ps));}return r;},upColor:UP,downColor:DN,borderVisible:false,wickUpColor:UP,wickDownColor:DN,priceLineColor:BLUE,priceLineStyle:2});
   CS.priceScale().applyOptions({scaleMargins:{top:0.08,bottom:0.22}});
   VS=CH.addSeries(LW.HistogramSeries,{priceFormat:{type:"volume"},priceScaleId:"",lastValueVisible:false,priceLineVisible:false});
   VS.priceScale().applyOptions({scaleMargins:{top:0.82,bottom:0}});
