@@ -154,7 +154,7 @@ html,body,a.btn,.card,input,select,textarea,button{transition:background-color .
     <div id="tlBody"></div>
   </div>
 
-  <details class="card how">
+  <details class="card how" id="how">
     <summary>How to read this</summary>
     <div class="howb">
       <p><b class="pos">Green bars</b> are prices where dealers hedge against the move: they sell rallies and buy dips. Price tends to <b>slow down, chop or pin</b> there.</p>
@@ -298,5 +298,6 @@ function apply(t){if(t==="light")root.setAttribute("data-theme","light");else ro
 document.querySelectorAll(".thm button").forEach(function(b){b.addEventListener("click",function(){apply(b.getAttribute("data-t"));});});
 apply(root.getAttribute("data-theme")==="light"?"light":"dark");})();
 </script>
+<script>(function(){function o(){if(location.hash==="#how"){var d=document.getElementById("how");if(d){d.open=true;setTimeout(function(){d.scrollIntoView({behavior:"smooth",block:"start"});},300);}}}o();addEventListener("hashchange",o);})();</script>
 </body>
 </html>
