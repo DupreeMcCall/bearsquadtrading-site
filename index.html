@@ -765,7 +765,7 @@ if(open<0){const f=document.querySelector(".founding");if(f)f.innerHTML="All 100
 /* Email gate before the Discord invite */
 (()=>{const KIT="https://app.kit.com/forms/10184477/subscriptions";
 const gate=document.getElementById("gate"),f=document.getElementById("gateForm"),err=document.getElementById("gErr"),go=document.getElementById("gGo");let target="";
-const signed=()=>{try{return localStorage.getItem("bs_joined")==="1"}catch(e){return false}};
+const signed=()=>{try{return localStorage.getItem("bs_joined")==="1"||!!localStorage.getItem("sb-uqitaxzmaoqbebucfnbe-auth-token")}catch(e){return false}};
 document.querySelectorAll("a.join").forEach(btn=>btn.addEventListener("click",e=>{if(signed())return;e.preventDefault();target=btn.href;gate.classList.add("show");setTimeout(()=>document.getElementById("gName").focus(),50)}));
 document.getElementById("gateX").onclick=()=>gate.classList.remove("show");
 gate.addEventListener("click",e=>{if(e.target===gate)gate.classList.remove("show")});
