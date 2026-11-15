@@ -109,10 +109,21 @@ async function loadDays(): Promise<Session[]> {
 // Real 1-minute candles for the session window, when Yahoo still has them (roughly the last 30 days).
 // Older sessions return null and the page builds the minutes from the 5-minute bars instead.
 const m1Cache = new Map<string, number[][] | null>();
+const SB_URL = Deno.env.get("SUPABASE_URL") || "", SB_ANON = Deno.env.get("SUPABASE_ANON_KEY") || "";
+// 1) our own stored library (public.nq_1m, filled daily by pg_cron); 2) Yahoo for the last ~30 days.
+async function fromLibrary(d: Session): Promise<number[][] | null> {
+  if (!SB_URL || !SB_ANON) return null;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/nq_1m?d=eq.${d.date}&mm=gte.${START}&mm=lt.${END + 5}&select=mm,o,h,l,c,v&order=mm`, { headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` } });
+    if (!r.ok) return null;
+    const rows = (await r.json()).map((x: Record<string, number>) => [+x.mm, +x.o, +x.h, +x.l, +x.c, +x.v]);
+    return rows.length >= d.bars.length * 5 * 0.8 ? rows : null;
+  } catch (_e) { return null; }
+}
 async function loadM1(d: Session): Promise<number[][] | null> {
   if (m1Cache.has(d.date)) return m1Cache.get(d.date)!;
-  let out: number[][] | null = null;
-  if (Date.now() / 1000 - d.t0 < 29 * 86400) {
+  let out: number[][] | null = await fromLibrary(d);
+  if (!out && Date.now() / 1000 - d.t0 < 29 * 86400) {
     try {
       const ac = new AbortController(); const to = setTimeout(() => ac.abort(), 4000);
       const r = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/NQ%3DF?interval=1m&period1=${d.t0}&period2=${d.t1}`, { headers: { "User-Agent": "Mozilla/5.0" }, signal: ac.signal });
@@ -129,7 +140,7 @@ async function loadM1(d: Session): Promise<number[][] | null> {
       }
     } catch (_e) { out = null; }
   }
-  m1Cache.set(d.date, out);
+  if (out) m1Cache.set(d.date, out);
   return out;
 }
 function hash(s: string) { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
