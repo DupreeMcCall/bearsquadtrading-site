@@ -11,7 +11,7 @@
 type Row = { t: number; date: string; mm: number; wd: string; o: number; h: number; l: number; c: number; v: number };
 type Session = {
   wd: string; bars: number[][]; ind: Record<string, number[]>; pre: number[];
-  lv: Record<string, number | null>; date: string;
+  lv: Record<string, number | null>; date: string; t0: number; t1: number;
 };
 const cache: { t: number; days: Session[] | null } = { t: 0, days: null };
 const TTL = 6 * 60 * 60 * 1000;
@@ -93,7 +93,7 @@ async function loadDays(): Promise<Session[]> {
     const ind: Record<string, number[]> = { vwap: idx.map((i) => r2(vwap[i])) };
     for (const n of PERIODS) ind["e" + n] = idx.map((i) => r2(ema[n][i]));
     days.push({
-      date, wd: first.wd,
+      date, wd: first.wd, t0: first.t, t1: rows[idx[idx.length - 1]].t + 300,
       bars: idx.map((i) => { const b = rows[i]; return [b.mm, r2(b.o), r2(b.h), r2(b.l), r2(b.c), b.v]; }),
       ind,
       // closes before the session window, so the page can compute any EMA period the user picks
@@ -104,6 +104,32 @@ async function loadDays(): Promise<Session[]> {
   // skip the first few sessions so EMA 200 has enough history
   const out = days.slice(3);
   cache.t = Date.now(); cache.days = out;
+  return out;
+}
+// Real 1-minute candles for the session window, when Yahoo still has them (roughly the last 30 days).
+// Older sessions return null and the page builds the minutes from the 5-minute bars instead.
+const m1Cache = new Map<string, number[][] | null>();
+async function loadM1(d: Session): Promise<number[][] | null> {
+  if (m1Cache.has(d.date)) return m1Cache.get(d.date)!;
+  let out: number[][] | null = null;
+  if (Date.now() / 1000 - d.t0 < 29 * 86400) {
+    try {
+      const ac = new AbortController(); const to = setTimeout(() => ac.abort(), 4000);
+      const r = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/NQ%3DF?interval=1m&period1=${d.t0}&period2=${d.t1}`, { headers: { "User-Agent": "Mozilla/5.0" }, signal: ac.signal });
+      clearTimeout(to);
+      const j = await r.json(); const res = j?.chart?.result?.[0];
+      if (res?.timestamp) {
+        const q = res.indicators.quote[0], rows: number[][] = [];
+        res.timestamp.forEach((t: number, i: number) => {
+          const o = q.open[i], h = q.high[i], l = q.low[i], c = q.close[i];
+          if (o == null || h == null || l == null || c == null || t < d.t0 || t >= d.t1) return;
+          rows.push([parts(t).mm, r2(o), r2(h), r2(l), r2(c), q.volume[i] || 0]);
+        });
+        if (rows.length >= d.bars.length * 5 * 0.8) out = rows;
+      }
+    } catch (_e) { out = null; }
+  }
+  m1Cache.set(d.date, out);
   return out;
 }
 function hash(s: string) { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -134,7 +160,8 @@ Deno.serve(async (req) => {
     const d = days[idx];
     const code = (hash("bsq-" + d.date) % 9000 + 1000).toString();
     const startIdx = d.bars.findIndex((b) => b[0] === OPEN);
-    return json({ mode, day: today, session: code, weekday: d.wd, count: days.length, startIdx, bars: d.bars, ind: d.ind, pre: d.pre, lv: d.lv });
+    const m1 = await loadM1(d);
+    return json({ mode, day: today, session: code, weekday: d.wd, count: days.length, startIdx, bars: d.bars, ind: d.ind, pre: d.pre, lv: d.lv, m1 });
   } catch (e) {
     return json({ error: "data source unavailable", detail: String(e) }, 502);
   }
