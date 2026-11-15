@@ -1,6 +1,7 @@
 // Bear Squad Trading: "The Gym" replay sessions.
 // Serves a hidden past NQ morning (5-minute candles) for the practice game,
-// plus indicators computed from full history (EMA 9/21/50/200, session VWAP)
+// plus indicators computed from full history (session VWAP, EMA 9/21/50/200 for older pages)
+// and prior closes so the page can compute any EMA period the user chooses
 // and key levels (prior day high/low/close, overnight high/low).
 // Each indicator value only uses candles up to that bar, so nothing leaks ahead.
 // Daily mode: everyone gets the same session (seeded by today's date, PT).
@@ -9,7 +10,7 @@
 
 type Row = { t: number; date: string; mm: number; wd: string; o: number; h: number; l: number; c: number; v: number };
 type Session = {
-  wd: string; bars: number[][]; ind: Record<string, number[]>;
+  wd: string; bars: number[][]; ind: Record<string, number[]>; pre: number[];
   lv: Record<string, number | null>; date: string;
 };
 const cache: { t: number; days: Session[] | null } = { t: 0, days: null };
@@ -20,6 +21,7 @@ const OPEN = 390;  // 6:30am PT (game starts)
 const END = 510;   // 8:30am PT (game ends)
 const RTH_END = 780; // 1:00pm PT
 const PERIODS = [9, 21, 50, 200];
+const PRE = 1500; // prior 5m closes sent for custom EMA warm-up (~5 trading days)
 
 const fmt = new Intl.DateTimeFormat("en-US", {
   timeZone: "America/Los_Angeles", hour12: false, year: "numeric", month: "2-digit", day: "2-digit",
@@ -94,6 +96,8 @@ async function loadDays(): Promise<Session[]> {
       date, wd: first.wd,
       bars: idx.map((i) => { const b = rows[i]; return [b.mm, r2(b.o), r2(b.h), r2(b.l), r2(b.c), b.v]; }),
       ind,
+      // closes before the session window, so the page can compute any EMA period the user picks
+      pre: rows.slice(Math.max(0, idx[0] - PRE), idx[0]).map((r) => r2(r.c)),
       lv: { pdh: r2(pd.h), pdl: r2(pd.l), pdc: r2(pd.c), onh: isFinite(onh) ? r2(onh) : null, onl: isFinite(onl) ? r2(onl) : null },
     });
   }
@@ -130,7 +134,7 @@ Deno.serve(async (req) => {
     const d = days[idx];
     const code = (hash("bsq-" + d.date) % 9000 + 1000).toString();
     const startIdx = d.bars.findIndex((b) => b[0] === OPEN);
-    return json({ mode, day: today, session: code, weekday: d.wd, count: days.length, startIdx, bars: d.bars, ind: d.ind, lv: d.lv });
+    return json({ mode, day: today, session: code, weekday: d.wd, count: days.length, startIdx, bars: d.bars, ind: d.ind, pre: d.pre, lv: d.lv });
   } catch (e) {
     return json({ error: "data source unavailable", detail: String(e) }, 502);
   }
