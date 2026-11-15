@@ -5,7 +5,7 @@ var sb=null;try{if(window.supabase)sb=window.supabase.createClient(BASE,KEY);}ca
 var $=function(i){return document.getElementById(i);};
 var PV=2,START=50000,LIMIT=1000,MINRISK=2;
 var user=null,G=null,timer=null;
-var cfg={mode:"daily",qty:1,stop:20,r:0,speed:1500};
+var cfg={mode:"daily",qty:1,stop:20,r:0,speed:2000};
 var TFS=[1,2,5,15,30],TF=(function(){try{var v=+localStorage.getItem("bs_gym_tf");return TFS.indexOf(v)>=0?v:5;}catch(e){return 5;}})();
 /* ---------- minute engine: every 5-min bar is played out minute by minute ---------- */
 function q4(x){return Math.round(x*4)/4;}
@@ -22,6 +22,20 @@ function buildMinutes(d){var real={},out=[],nReal=0;(d.m1||[]).forEach(function(
   d.bars.forEach(function(b){var syn=null;for(var n=0;n<5;n++){var r=real[b[0]+n];if(r){out.push([r[0],r[1],r[2],r[3],r[4],r[5]||0]);nReal++;}else{syn=syn||splitBar(b);out.push(syn[n]);}}});
   return {m:out,real:nReal>=d.bars.length*4};}
 function setK(k){G.k=k;G.i=Math.floor(k/5);}
+// Within a minute, price travels open -> first extreme -> second extreme -> close. f = how far along (0..1).
+function mPath(m){return m[4]>=m[1]?[m[1],m[3],m[2],m[4]]:[m[1],m[2],m[3],m[4]];}
+function pathAt(m,f){var P=mPath(m),D=[0],T=0;for(var s=1;s<4;s++){T+=Math.abs(P[s]-P[s-1]);D.push(T);}
+  if(T<=0)return {c:m[1],h:m[1],l:m[1]};var d=f*T,h=P[0],l=P[0],c=P[3];
+  for(var s=1;s<4;s++){if(d>=D[s]-1e-9){h=Math.max(h,P[s]);l=Math.min(l,P[s]);}else{var L=D[s]-D[s-1];c=P[s-1]+(P[s]-P[s-1])*((d-D[s-1])/L);h=Math.max(h,c);l=Math.min(l,c);break;}}
+  return {c:q4(c),h:q4(h),l:q4(l)};}
+// High/low travelled between f0 and f1 (used for stop/target fills inside the minute)
+function pathRange(m,f0,f1){var a=pathAt(m,f0),b=pathAt(m,f1),P=mPath(m),D=[0],T=0,h=Math.max(a.c,b.c),l=Math.min(a.c,b.c);
+  for(var s=1;s<4;s++){T+=Math.abs(P[s]-P[s-1]);D.push(T);}
+  if(T>0)for(var s=1;s<3;s++){var fv=D[s]/T;if(fv>f0&&fv<f1){h=Math.max(h,P[s]);l=Math.min(l,P[s]);}}
+  return {start:a.c,h:h,l:l};}
+function curK(){return G.k+(G.f>0&&G.k<G.m.length-1?1:0);}
+function partial(){if(!(G.f>0)||G.k>=G.m.length-1)return null;var m=G.m[G.k+1],r=pathAt(m,G.f);return [m[0],m[1],Math.max(m[1],r.h),Math.min(m[1],r.l),r.c,Math.round(m[5]*G.f)];}
+function price(){var p=partial();return p?p[4]:G.m[G.k][4];}
 /* ---------- Sim Challenge (paper money) ---------- */
 var SIM={target:3000,dd:2000,minDays:5,cons:0.40,step:17},SKEY="bs_gym_sim";
 function simGet(){try{return JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){return null;}}
@@ -81,8 +95,8 @@ function load(){
   var u=BASE+"/functions/v1/replay?mode="+(cfg.mode==="sim"?"practice":cfg.mode)+(cfg.mode==="practice"?"&i="+Math.floor(Math.random()*100000):cfg.mode==="sim"?"&i="+(sim.seed+sim.days.length*SIM.step):"");
   fetch(u,H).then(function(r){return r.json();}).then(function(d){
     if(d.error||!d.bars)throw new Error(d.error||"no data");
-    drawnKey="";drawnN=-1;var bm=buildMinutes(d);G={d:d,bars:d.bars,m:bm.m,real:bm.real,k:0,i:0,pos:null,trades:[],realized:0,ended:false,blown:false,started:false,marks:[]};setK(d.startIdx*5-1);
-    if(cfg.mode==="daily"){var s=saved();if(s){G.ended=true;G.realized=s.pnl;G.trades=s.list||[];G.blown=s.blown;setK(G.m.length-1);G.restored=true;G.trades.forEach(function(t){var f=t.mk?1:5;if(t.ti!=null)G.marks.push({k:t.ti*f,t:t.side>0?"b":"s"});if(t.xi!=null)G.marks.push({k:t.xi*f,t:"x"});});}}
+    drawnKey="";drawnN=-1;var bm=buildMinutes(d);G={d:d,bars:d.bars,m:bm.m,real:bm.real,k:0,i:0,f:0,pos:null,trades:[],realized:0,ended:false,blown:false,started:false,marks:[]};setK(d.startIdx*5-1);
+    if(cfg.mode==="daily"){var s=saved();if(s){G.ended=true;G.realized=s.pnl;G.trades=s.list||[];G.blown=s.blown;setK(G.m.length-1);G.f=0;G.restored=true;G.trades.forEach(function(t){var f=t.mk?1:5;if(t.ti!=null)G.marks.push({k:t.ti*f,t:t.side>0?"b":"s"});if(t.xi!=null)G.marks.push({k:t.xi*f,t:"x"});});}}
     render();if(G.ended)finish(true);
   }).catch(function(){$("gTitle").textContent="Couldn't load a session. Try again in a minute.";});
 }
@@ -90,12 +104,12 @@ function bar(){return G.m[G.k];}
 function lastK(){return G.m.length-1;}
 function remaining(){var r=LIMIT+G.realized;if(cfg.mode==="sim"){var o=simGet();if(o)r=Math.min(r,START+simTotal(o)+G.realized-simFloor(o));}return r;}
 function ddLeft(){var o=simGet();return o?START+simTotal(o)+G.realized-simFloor(o):Infinity;}
-function openPnl(){if(!G.pos)return 0;return (bar()[4]-G.pos.entry)*G.pos.side*PV*G.pos.qty;}
-function exitPos(px,why){
+function openPnl(){if(!G.pos)return 0;return (price()-G.pos.entry)*G.pos.side*PV*G.pos.qty;}
+function exitPos(px,why,kk){if(kk==null)kk=curK();
   var p=G.pos,pnl=Math.round((px-p.entry)*p.side*PV*p.qty*100)/100;
   G.realized=Math.round((G.realized+pnl)*100)/100;
-  G.trades.push({side:p.side,qty:p.qty,entry:p.entry,exit:px,pnl:pnl,why:why,ti:p.at,xi:G.k,mk:1});
-  G.marks.push({k:G.k,px:px,t:"x"});G.pos=null;persist();
+  G.trades.push({side:p.side,qty:p.qty,entry:p.entry,exit:px,pnl:pnl,why:why,ti:p.at,xi:kk,mk:1});
+  G.marks.push({k:kk,px:px,t:"x"});G.pos=null;persist();
   if(remaining()<MINRISK){G.blown=true;end();}
 }
 function persist(){
@@ -106,31 +120,35 @@ function persist(){
   var w=G.trades.filter(function(t){return t.pnl>0;}).length,best=G.trades.reduce(function(m,t){return Math.max(m,t.pnl);},-1e9);
   save({pnl:G.realized,trades:G.trades.length,wins:w,best:G.trades.length?best:0,blown:G.blown,final:G.ended,posted:(saved()||{}).posted||false,list:G.trades});
 }
-function step(){
+// Check stop/target on the part of minute kk travelled between f0 and f1.
+function fills(kk,f0,f1){if(!G.pos||!G.m[kk])return;var p=G.pos,r=pathRange(G.m[kk],f0,f1),gap=r.start;
+  if(p.side>0){if(r.l<=p.stop)exitPos(gap<p.stop?gap:p.stop,"stop",kk);else if(p.tgt!=null&&r.h>=p.tgt)exitPos(p.tgt,"target",kk);}
+  else{if(r.h>=p.stop)exitPos(gap>p.stop?gap:p.stop,"stop",kk);else if(p.tgt!=null&&r.l<=p.tgt)exitPos(p.tgt,"target",kk);}}
+function advance(df){
   if(!G||G.ended)return;
   if(G.k>=lastK()){end();return;}
-  setK(G.k+1);var b=bar();
-  if(G.pos){var p=G.pos;
-    // gap through the stop fills at the open of the minute (slippage), otherwise at the stop
-    if(p.side>0){if(b[3]<=p.stop)exitPos(Math.min(p.stop,b[1]),"stop");else if(p.tgt!=null&&b[2]>=p.tgt)exitPos(p.tgt,"target");}
-    else{if(b[2]>=p.stop)exitPos(Math.max(p.stop,b[1]),"stop");else if(p.tgt!=null&&b[3]<=p.tgt)exitPos(p.tgt,"target");}
-  }
+  var kk=G.k+1,f0=G.f,f1=Math.min(1,f0+df);
+  fills(kk,f0,f1);
+  if(f1>=0.999){G.f=0;setK(kk);}else G.f=f1;
   if(!G.ended&&G.k>=lastK())end();
   render();
 }
+function step(){advance(1);}
+function subs(){return Math.max(2,Math.min(20,Math.round(cfg.speed/100)));}
+function tick(){advance(1/subs());}
 function enter(side){
   if(!G||G.ended||G.pos)return;
-  if(G.k>=lastK()){msg("Session's over. No new trades.");return;}
+  if(curK()>=lastK()){msg("Session's over. No new trades.");return;}
   var risk=cfg.stop*PV*cfg.qty,rem=remaining();
   if(risk>rem){msg("That trade risks "+usd(risk)+" but you only have "+usd(rem)+" left before "+(cfg.mode==="sim"&&ddLeft()<=rem+0.01?"your max drawdown":"the daily limit")+". Lower your size or tighten your stop.","warn");return;}
-  var e=bar()[4]+(side>0?0.25:0);G.started=true;
-  G.pos={side:side,qty:cfg.qty,entry:e,stop:e-side*cfg.stop,tgt:cfg.r?e+side*cfg.stop*cfg.r:null,at:G.k,risk:risk};
-  G.marks.push({k:G.k,px:e,t:side>0?"b":"s"});persist();render();
+  var e=price()+(side>0?0.25:0);G.started=true;
+  G.pos={side:side,qty:cfg.qty,entry:e,stop:e-side*cfg.stop,tgt:cfg.r?e+side*cfg.stop*cfg.r:null,at:curK(),atF:G.f,risk:risk};
+  G.marks.push({k:curK(),px:e,t:side>0?"b":"s"});persist();render();
 }
-function closePos(){if(G&&G.pos&&!G.ended){exitPos(bar()[4],"manual");render();}}
+function closePos(){if(G&&G.pos&&!G.ended){exitPos(price(),"manual");render();}}
 function end(){
   if(G.ended&&!G.pos){render();return;}
-  if(G.pos)exitPos(bar()[4],"session end");
+  if(G.pos)exitPos(price(),"session end");
   G.ended=true;stop();persist();render();finish(false);
 }
 /* ---------- render ---------- */
@@ -139,7 +157,7 @@ function render(){
   if(!G)return;var d=G.d,b=bar(),open=G.k>=d.startIdx*5;
   var so=cfg.mode==="sim"?simGet():null;$("gTitle").textContent=(cfg.mode==="daily"?"Daily Challenge":cfg.mode==="sim"?"Sim Challenge · Day "+((so?so.days.length:0)+(G.ended&&!G.restored?0:1)):"Practice")+" · Session #"+d.session;
   $("gSub").textContent=(G.ended?d.weekday+" morning":"hidden date")+" · NQ "+TF+"-min"+(TF<5&&!G.real?" · 1m path estimated from 5m data":"");
-  $("gTime").textContent=fmtT(b[0]+1)+" PT";
+  var pm=partial();$("gTime").textContent=(pm?fmtT(pm[0]).replace(/([ap])$/,":"+("0"+Math.floor(G.f*60)).slice(-2)+"$1"):fmtT(b[0]+1))+" PT";
   var left=Math.max(0,lastK()-G.k);$("gLeft").textContent=G.ended?"Session over":(open?Math.floor(left/60)+"h "+left%60+"m left":"Premarket · open at 6:30a");
   var op=openPnl(),bal=START+G.realized+op;
   $("sBal").textContent=usd(bal);$("sPnl").textContent=usd(G.realized,true);$("sPnl").className=cls(G.realized);
@@ -148,12 +166,12 @@ function render(){
   $("limFill").style.width=Math.max(0,Math.min(100,(1-Math.max(0,rem)/LIMIT)*100)).toFixed(0)+"%";
   var risk=cfg.stop*PV*cfg.qty;
   $("riskLine").innerHTML='Risk <b class="neg">'+usd(risk)+'</b> · '+(cfg.r?'Target <b class="pos">'+usd(risk*cfg.r)+'</b>':'No target, you manage the exit')+' · '+cfg.qty+' MNQ · stop '+cfg.stop+' pts'+(risk>remaining()?' <span class="neg">· over your remaining limit</span>':'');
-  $("pxB").textContent=(b[4]+0.25).toFixed(2);$("pxS").textContent=b[4].toFixed(2);$("qv").textContent=cfg.qty;
+  var lp=price();$("pxB").textContent=(lp+0.25).toFixed(2);$("pxS").textContent=lp.toFixed(2);$("qv").textContent=cfg.qty;
   $("bBuy").disabled=!!G.pos||G.ended;$("bSell").disabled=!!G.pos||G.ended;$("bClose").classList.toggle("hide",!G.pos);
   ["bClose","bStep","bPlay","qm","qp"].forEach(function(id){$(id).disabled=G.ended;});
   if(G.pos){var p=G.pos;msg((p.side>0?'<b class="pos">LONG</b>':'<b class="neg">SHORT</b>')+' '+p.qty+' MNQ @ '+p.entry.toFixed(2)+' · stop '+p.stop.toFixed(2)+(p.tgt!=null?' · target '+p.tgt.toFixed(2):' · no target'));}
   else if(G.ended)msg(G.blown?(cfg.mode==="sim"&&ddLeft()<MINRISK?'<b class="neg">Max drawdown hit.</b> Challenge over.':'<b class="neg">Daily loss limit hit.</b> '+(cfg.mode==="sim"?"Done for this day.":"Account is done for today.")):"Session complete.");
-  else if(!G.trades.length)msg("Flat. Set your size and stop, then pick a side. Price so far: "+b[4].toFixed(2));
+  else if(!G.trades.length)msg("Flat. Set your size and stop, then pick a side. Price so far: "+price().toFixed(2));
   else{var t=G.trades[G.trades.length-1];msg("Flat. Last trade: "+(t.side>0?"long":"short")+" closed at "+t.why+" for <b class=\""+cls(t.pnl)+"\">"+usd(t.pnl,true)+"</b>.");}
   drawChart();
 }
@@ -177,7 +195,8 @@ function saveInd(){try{localStorage.setItem("bs_gym_ind",JSON.stringify({lv:KEYL
 // Candles for the chosen timeframe, built from the minutes revealed so far. The last one is still forming.
 function tfKey(mm){return Math.floor(mm/TF)*TF;}
 function candles(){var out=[],cu=null;if(!G||!G.m)return out;
-  for(var j=0;j<=G.k;j++){var m=G.m[j],key=tfKey(m[0]);
+  var pm=partial(),last=pm?G.k+1:G.k;
+  for(var j=0;j<=last;j++){var m=(pm&&j===last)?pm:G.m[j],key=tfKey(m[0]);
     if(!cu||cu.key!==key){cu={key:key,o:m[1],h:m[2],l:m[3],c:m[4],v:m[5],j1:j};out.push(cu);}
     else{cu.h=Math.max(cu.h,m[2]);cu.l=Math.min(cu.l,m[3]);cu.c=m[4];cu.v+=m[5];cu.j1=j;}}
   return out;}
@@ -251,19 +270,19 @@ var drawnN=-1;
 function drawChart(){
   if(!LW){$("chart").innerHTML='<p class="mut sm" style="padding:16px">Chart failed to load. Refresh the page.</p>';return;}
   initChart();var key=G.d.session+"|"+cfg.mode+"|"+TF,cs=candles();
-  if(key!==drawnKey||cs.length<drawnN||G.k<drawnK){CS.setData(cs.map(candleOf));VS.setData(cs.map(volOf));drawnKey=key;drawLevels();
+  if(key!==drawnKey||cs.length<drawnN||curK()<drawnK){CS.setData(cs.map(candleOf));VS.setData(cs.map(volOf));drawnKey=key;drawLevels();
     var tot=nTF(),fit=Math.max(30,Math.floor(($("chart").clientWidth||600)/7));
     CH.timeScale().setVisibleLogicalRange(tot+4<=fit?{from:-1,to:tot+4}:{from:Math.max(-1,cs.length-Math.round(fit*0.75)),to:cs.length+Math.round(fit*0.25)});}
   else{for(var n=Math.max(0,drawnN-1);n<cs.length;n++){CS.update(candleOf(cs[n]));VS.update(volOf(cs[n]));}}
-  drawnN=cs.length;drawnK=G.k;syncLines(cs);
+  drawnN=cs.length;drawnK=curK();syncLines(cs);
   PL.forEach(function(l){CS.removePriceLine(l);});PL=[];
   if(G.pos){var p=G.pos,lbl=(p.side>0?"Long ":"Short ")+p.qty;
     PL.push(CS.createPriceLine({price:p.entry,color:BLUE,lineWidth:2,lineStyle:0,axisLabelVisible:true,title:lbl}));
     PL.push(CS.createPriceLine({price:p.stop,color:DN,lineWidth:1,lineStyle:2,axisLabelVisible:true,title:"SL "+usd(-p.risk)}));
     if(p.tgt!=null)PL.push(CS.createPriceLine({price:p.tgt,color:UP,lineWidth:1,lineStyle:2,axisLabelVisible:true,title:"TP "+usd(p.risk*(Math.abs(p.tgt-p.entry)/Math.abs(p.entry-p.stop)),true)}));}
   var openK=G.d.startIdx*5,ms=[];
-  if(G.k>=openK)ms.push({time:tOf(tfKey(G.m[openK][0])),position:"aboveBar",color:"#f5a623",shape:"square",size:0.5,text:"Open"});
-  G.marks.forEach(function(m){var mk=m.k!=null?m.k:m.i*5;if(mk>G.k||!G.m[mk])return;var t=tOf(tfKey(G.m[mk][0]));
+  if(curK()>=openK)ms.push({time:tOf(tfKey(G.m[openK][0])),position:"aboveBar",color:"#f5a623",shape:"square",size:0.5,text:"Open"});
+  G.marks.forEach(function(m){var mk=m.k!=null?m.k:m.i*5;if(mk>curK()||!G.m[mk])return;var t=tOf(tfKey(G.m[mk][0]));
     if(m.t==="b")ms.push({time:t,position:"belowBar",color:BLUE,shape:"arrowUp",text:"Buy"});
     else if(m.t==="s")ms.push({time:t,position:"aboveBar",color:DN,shape:"arrowDown",text:"Sell"});
     else{var tr=G.trades.filter(function(x){return x.xi*(x.mk?1:5)===mk;}).pop();ms.push({time:t,position:"inBar",color:"#f5a623",shape:"circle",size:0.7,text:tr?usd(tr.pnl,true):""});}});
@@ -360,7 +379,7 @@ function loadLb(){
 }
 /* ---------- controls ---------- */
 function stop(){if(timer){clearInterval(timer);timer=null;}$("bPlay").textContent="▶ Play";}
-function togglePlay(){if(timer){stop();return;}if(!G||G.ended)return;timer=setInterval(step,Math.max(60,Math.round(cfg.speed/5)));$("bPlay").textContent="❚❚ Pause";}
+function togglePlay(){if(timer){stop();return;}if(!G||G.ended)return;timer=setInterval(tick,Math.round(cfg.speed/subs()));$("bPlay").textContent="❚❚ Pause";}
 function setMode(m){cfg.mode=m;renderSim();document.querySelectorAll("#sMode button").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-v")===m);});load();}
 function seg(id,key,num){$(id).querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){cfg[key]=num?+b.getAttribute("data-v"):b.getAttribute("data-v");$(id).querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});if(key==="speed"&&timer){stop();togglePlay();}render();});});}
 document.querySelectorAll("#sMode button").forEach(function(b){b.addEventListener("click",function(){setMode(b.getAttribute("data-v"));});});
