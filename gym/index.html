@@ -101,6 +101,7 @@ html[data-theme="light"] .game{--tvbg:#ffffff;--tvpanel:#f0f3fa;--tvline:#e0e3eb
 .tv{border:1px solid var(--tvline);border-radius:6px;overflow:hidden;background:var(--tvbg)}
 .tvtop{display:flex;align-items:center;gap:12px;padding:7px 10px;border-bottom:1px solid var(--tvline);font:12px -apple-system,BlinkMacSystemFont,"Trebuchet MS",Roboto,sans-serif;flex-wrap:wrap}
 .tvsym{display:flex;align-items:center;gap:6px;white-space:nowrap}.tvsym b{font-weight:700;font-size:13px}.tvsym span{color:var(--tvmute)}
+.tfs{display:inline-flex;gap:1px;margin-left:2px}.tfs button{background:none;border:0;color:var(--tvmute);font:600 12px -apple-system,BlinkMacSystemFont,"Trebuchet MS",Roboto,sans-serif;padding:3px 6px;border-radius:4px;cursor:pointer}.tfs button:hover{color:var(--tvtext);background:var(--tvpanel)}.tfs button.on{color:var(--tvblue);background:var(--tvpanel)}
 .tvdot{width:8px;height:8px;border-radius:50%;background:var(--tvup);display:inline-block}
 .tvohlc{color:var(--tvmute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tvohlc b{font-weight:500;margin:0 6px 0 2px}
 .tvohlc .pos2{color:var(--tvup)}.tvohlc .neg2{color:var(--tvdn)}
@@ -318,7 +319,7 @@ var p=location.pathname;hd.querySelectorAll(".sh-mi").forEach(function(a){var h=
     <div class="limbar"><i id="limFill"></i></div>
     <div class="tv">
       <div class="tvtop">
-        <span class="tvsym"><i class="tvdot"></i><b>NQ1!</b><span>· 5 · CME</span></span>
+        <span class="tvsym"><i class="tvdot"></i><b>NQ1!</b><span class="tfs" id="sTF" role="group" aria-label="Timeframe"><button data-v="1">1m</button><button data-v="2">2m</button><button data-v="5">5m</button><button data-v="15">15m</button><button data-v="30">30m</button></span><span>· CME</span></span>
         <span class="tvohlc" id="ohlc"></span>
         <button class="tvind" id="bInd" aria-expanded="false"><i>ƒx</i> Indicators</button>
       </div>
@@ -343,7 +344,7 @@ var p=location.pathname;hd.querySelectorAll(".sh-mi").forEach(function(a){var h=
     </div>
 
     <div class="play">
-      <button class="btnx" id="bStep">Next candle ▸</button>
+      <button class="btnx" id="bStep" title="Move forward 1 minute (N or →)">+1 min ▸</button>
       <button class="btnx" id="bPlay">▶ Play</button>
       <div class="seg mini" id="sSpd"><button data-v="1500" class="on">1x</button><button data-v="800">2x</button><button data-v="400">4x</button></div>
     </div>
@@ -381,6 +382,22 @@ var $=function(i){return document.getElementById(i);};
 var PV=2,START=50000,LIMIT=1000,MINRISK=2;
 var user=null,G=null,timer=null;
 var cfg={mode:"daily",qty:1,stop:20,r:0,speed:1500};
+var TFS=[1,2,5,15,30],TF=(function(){try{var v=+localStorage.getItem("bs_gym_tf");return TFS.indexOf(v)>=0?v:5;}catch(e){return 5;}})();
+/* ---------- minute engine: every 5-min bar is played out minute by minute ---------- */
+function q4(x){return Math.round(x*4)/4;}
+// Split one 5-min OHLC bar into 5 one-minute bars along a realistic path (open -> first extreme -> second extreme -> close).
+function splitBar(b){var mm=b[0],o=b[1],h=b[2],l=b[3],c=b[4],v=b[5]||0,pts=c>=o?[o,l,h,c]:[o,h,l,c];
+  var D=[0],T=0;for(var s=1;s<4;s++){T+=Math.abs(pts[s]-pts[s-1]);D.push(T);}
+  function at(f){if(T<=0)return o;var d=f*T;for(var s=1;s<4;s++){if(d<=D[s]+1e-9){var L=D[s]-D[s-1];return L<=0?pts[s]:pts[s-1]+(pts[s]-pts[s-1])*((d-D[s-1])/L);}}return c;}
+  var out=[],vv=Math.round(v/5);
+  for(var n=0;n<5;n++){var f0=n/5,f1=(n+1)/5,a0=n===0?o:q4(at(f0)),a1=n===4?c:q4(at(f1)),hi=Math.max(a0,a1),lo=Math.min(a0,a1);
+    for(var s=1;s<3;s++){var fv=T>0?D[s]/T:0;if(fv>f0&&fv<f1){hi=Math.max(hi,pts[s]);lo=Math.min(lo,pts[s]);}}
+    out.push([mm+n,a0,hi,lo,a1,n===4?v-vv*4:vv]);}
+  return out;}
+function buildMinutes(d){var real={},out=[],nReal=0;(d.m1||[]).forEach(function(r){real[r[0]]=r;});
+  d.bars.forEach(function(b){var syn=null;for(var n=0;n<5;n++){var r=real[b[0]+n];if(r){out.push([r[0],r[1],r[2],r[3],r[4],r[5]||0]);nReal++;}else{syn=syn||splitBar(b);out.push(syn[n]);}}});
+  return {m:out,real:nReal>=d.bars.length*4};}
+function setK(k){G.k=k;G.i=Math.floor(k/5);}
 /* ---------- Sim Challenge (paper money) ---------- */
 var SIM={target:3000,dd:2000,minDays:5,cons:0.40,step:17},SKEY="bs_gym_sim";
 function simGet(){try{return JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){return null;}}
@@ -440,20 +457,21 @@ function load(){
   var u=BASE+"/functions/v1/replay?mode="+(cfg.mode==="sim"?"practice":cfg.mode)+(cfg.mode==="practice"?"&i="+Math.floor(Math.random()*100000):cfg.mode==="sim"?"&i="+(sim.seed+sim.days.length*SIM.step):"");
   fetch(u,H).then(function(r){return r.json();}).then(function(d){
     if(d.error||!d.bars)throw new Error(d.error||"no data");
-    drawnKey="";drawnI=-1;G={d:d,bars:d.bars,i:d.startIdx-1,pos:null,trades:[],realized:0,ended:false,blown:false,started:false,marks:[]};
-    if(cfg.mode==="daily"){var s=saved();if(s){G.ended=true;G.realized=s.pnl;G.trades=s.list||[];G.blown=s.blown;G.i=G.bars.length-1;G.restored=true;}}
+    drawnKey="";drawnN=-1;var bm=buildMinutes(d);G={d:d,bars:d.bars,m:bm.m,real:bm.real,k:0,i:0,pos:null,trades:[],realized:0,ended:false,blown:false,started:false,marks:[]};setK(d.startIdx*5-1);
+    if(cfg.mode==="daily"){var s=saved();if(s){G.ended=true;G.realized=s.pnl;G.trades=s.list||[];G.blown=s.blown;setK(G.m.length-1);G.restored=true;G.trades.forEach(function(t){var f=t.mk?1:5;if(t.ti!=null)G.marks.push({k:t.ti*f,t:t.side>0?"b":"s"});if(t.xi!=null)G.marks.push({k:t.xi*f,t:"x"});});}}
     render();if(G.ended)finish(true);
   }).catch(function(){$("gTitle").textContent="Couldn't load a session. Try again in a minute.";});
 }
-function bar(){return G.bars[G.i];}
+function bar(){return G.m[G.k];}
+function lastK(){return G.m.length-1;}
 function remaining(){var r=LIMIT+G.realized;if(cfg.mode==="sim"){var o=simGet();if(o)r=Math.min(r,START+simTotal(o)+G.realized-simFloor(o));}return r;}
 function ddLeft(){var o=simGet();return o?START+simTotal(o)+G.realized-simFloor(o):Infinity;}
 function openPnl(){if(!G.pos)return 0;return (bar()[4]-G.pos.entry)*G.pos.side*PV*G.pos.qty;}
 function exitPos(px,why){
   var p=G.pos,pnl=Math.round((px-p.entry)*p.side*PV*p.qty*100)/100;
   G.realized=Math.round((G.realized+pnl)*100)/100;
-  G.trades.push({side:p.side,qty:p.qty,entry:p.entry,exit:px,pnl:pnl,why:why,ti:p.at,xi:G.i});
-  G.marks.push({i:G.i,px:px,t:"x"});G.pos=null;persist();
+  G.trades.push({side:p.side,qty:p.qty,entry:p.entry,exit:px,pnl:pnl,why:why,ti:p.at,xi:G.k,mk:1});
+  G.marks.push({k:G.k,px:px,t:"x"});G.pos=null;persist();
   if(remaining()<MINRISK){G.blown=true;end();}
 }
 function persist(){
@@ -466,23 +484,24 @@ function persist(){
 }
 function step(){
   if(!G||G.ended)return;
-  if(G.i>=G.bars.length-1){end();return;}
-  G.i++;var b=bar();
+  if(G.k>=lastK()){end();return;}
+  setK(G.k+1);var b=bar();
   if(G.pos){var p=G.pos;
-    if(p.side>0){if(b[3]<=p.stop)exitPos(p.stop,"stop");else if(p.tgt!=null&&b[2]>=p.tgt)exitPos(p.tgt,"target");}
-    else{if(b[2]>=p.stop)exitPos(p.stop,"stop");else if(p.tgt!=null&&b[3]<=p.tgt)exitPos(p.tgt,"target");}
+    // gap through the stop fills at the open of the minute (slippage), otherwise at the stop
+    if(p.side>0){if(b[3]<=p.stop)exitPos(Math.min(p.stop,b[1]),"stop");else if(p.tgt!=null&&b[2]>=p.tgt)exitPos(p.tgt,"target");}
+    else{if(b[2]>=p.stop)exitPos(Math.max(p.stop,b[1]),"stop");else if(p.tgt!=null&&b[3]<=p.tgt)exitPos(p.tgt,"target");}
   }
-  if(!G.ended&&G.i>=G.bars.length-1)end();
+  if(!G.ended&&G.k>=lastK())end();
   render();
 }
 function enter(side){
   if(!G||G.ended||G.pos)return;
-  if(G.i>=G.bars.length-1){msg("Session's over. No new trades.");return;}
+  if(G.k>=lastK()){msg("Session's over. No new trades.");return;}
   var risk=cfg.stop*PV*cfg.qty,rem=remaining();
   if(risk>rem){msg("That trade risks "+usd(risk)+" but you only have "+usd(rem)+" left before "+(cfg.mode==="sim"&&ddLeft()<=rem+0.01?"your max drawdown":"the daily limit")+". Lower your size or tighten your stop.","warn");return;}
   var e=bar()[4]+(side>0?0.25:0);G.started=true;
-  G.pos={side:side,qty:cfg.qty,entry:e,stop:e-side*cfg.stop,tgt:cfg.r?e+side*cfg.stop*cfg.r:null,at:G.i,risk:risk};
-  G.marks.push({i:G.i,px:e,t:side>0?"b":"s"});persist();render();
+  G.pos={side:side,qty:cfg.qty,entry:e,stop:e-side*cfg.stop,tgt:cfg.r?e+side*cfg.stop*cfg.r:null,at:G.k,risk:risk};
+  G.marks.push({k:G.k,px:e,t:side>0?"b":"s"});persist();render();
 }
 function closePos(){if(G&&G.pos&&!G.ended){exitPos(bar()[4],"manual");render();}}
 function end(){
@@ -493,11 +512,11 @@ function end(){
 /* ---------- render ---------- */
 function msg(t,kind){$("posLine").className="posline "+(kind||"");$("posLine").innerHTML=t;}
 function render(){
-  if(!G)return;var d=G.d,b=bar(),open=G.i>=d.startIdx;
+  if(!G)return;var d=G.d,b=bar(),open=G.k>=d.startIdx*5;
   var so=cfg.mode==="sim"?simGet():null;$("gTitle").textContent=(cfg.mode==="daily"?"Daily Challenge":cfg.mode==="sim"?"Sim Challenge · Day "+((so?so.days.length:0)+(G.ended&&!G.restored?0:1)):"Practice")+" · Session #"+d.session;
-  $("gSub").textContent=(G.ended?d.weekday+" morning":"hidden date")+" · NQ 5-min";
-  $("gTime").textContent=fmtT(b[0]+5)+" PT";
-  var left=Math.max(0,(G.bars.length-1-G.i)*5);$("gLeft").textContent=G.ended?"Session over":(open?Math.floor(left/60)+"h "+left%60+"m left":"Premarket · open at 6:30a");
+  $("gSub").textContent=(G.ended?d.weekday+" morning":"hidden date")+" · NQ "+TF+"-min"+(TF<5&&!G.real?" · 1m path estimated from 5m data":"");
+  $("gTime").textContent=fmtT(b[0]+1)+" PT";
+  var left=Math.max(0,lastK()-G.k);$("gLeft").textContent=G.ended?"Session over":(open?Math.floor(left/60)+"h "+left%60+"m left":"Premarket · open at 6:30a");
   var op=openPnl(),bal=START+G.realized+op;
   $("sBal").textContent=usd(bal);$("sPnl").textContent=usd(G.realized,true);$("sPnl").className=cls(G.realized);
   var rem=remaining()+Math.min(0,op);$("sLim").textContent=usd(Math.max(0,rem));$("sLim").className=rem<300?"neg":"";
@@ -514,7 +533,7 @@ function render(){
   else{var t=G.trades[G.trades.length-1];msg("Flat. Last trade: "+(t.side>0?"long":"short")+" closed at "+t.why+" for <b class=\""+cls(t.pnl)+"\">"+usd(t.pnl,true)+"</b>.");}
   drawChart();
 }
-var LW=window.LightweightCharts,CH=null,CS=null,VS=null,MK=null,PL=[],drawnI=-1,drawnKey="";
+var LW=window.LightweightCharts,CH=null,CS=null,VS=null,MK=null,PL=[],drawnKey="";
 var T0=Date.UTC(2020,0,6)/1000;function tOf(m){return T0+m*60;}function mOf(t){return Math.round((t-T0)/60);}
 function tvColors(){var light=document.documentElement.getAttribute("data-theme")==="light";
   return light?{bg:"#ffffff",text:"#131722",grid:"#f0f3fa",border:"#e0e3eb",cross:"#9598a1",volU:"rgba(8,153,129,.35)",volD:"rgba(242,54,69,.35)"}
@@ -531,26 +550,32 @@ try{var sv=JSON.parse(localStorage.getItem("bs_gym_ind")||"null");if(sv){
   else[9,21,50,200].forEach(function(n){if(sv["e"+n])addEma(n);});
   VW.on=!!sv.vwap;KEYLV.on=!!sv.lv;var hx=/^#[0-9a-f]{6}$/i;if(hx.test(sv.vwc||""))VW.c=sv.vwc;if(hx.test(sv.lvc||""))KEYLV.c=sv.lvc;if(hx.test(sv.lvoc||""))KEYLV.oc=sv.lvoc;}}catch(e){}
 function saveInd(){try{localStorage.setItem("bs_gym_ind",JSON.stringify({lv:KEYLV.on,vwap:VW.on,vwc:VW.c,lvc:KEYLV.c,lvoc:KEYLV.oc,emas:EMAS.map(function(e){return {p:e.p,c:e.c,on:e.on};})}));}catch(e){}}
-// EMA for any period, aligned to the session bars. Uses prior closes from the server for warm-up,
-// so each value only depends on candles up to that bar (no look-ahead).
-function emaArr(p){if(!G||!G.bars)return null;var key=G.d.session+"|"+cfg.mode+"|"+p;if(ECACHE[key])return ECACHE[key];
-  var cl=G.bars.map(function(b){return b[4];}),out;
-  if(!G.d.pre&&G.d.ind&&G.d.ind["e"+p])out=G.d.ind["e"+p];
-  else{var src=(G.d.pre||[]).concat(cl),k=2/(p+1),e=src[0],all=[];
-    src.forEach(function(c,i){e=i?c*k+e*(1-k):c;all.push(Math.round(e*100)/100);});out=all.slice(src.length-cl.length);}
-  return ECACHE[key]=out;}
-function lineDefs(){var a=EMAS.map(function(e){return {k:"m"+e.id,c:e.c,w:1,on:e.on,n:"EMA "+e.p,arr:e.on?emaArr(e.p):null};});
-  a.push({k:"vwap",c:VW.c,w:2,on:VW.on,n:"VWAP",arr:G&&G.d.ind?G.d.ind.vwap:null});return a;}
-function syncLines(){if(!CH)return;var defs=lineDefs(),keep={};
+// Candles for the chosen timeframe, built from the minutes revealed so far. The last one is still forming.
+function tfKey(mm){return Math.floor(mm/TF)*TF;}
+function candles(){var out=[],cu=null;if(!G||!G.m)return out;
+  for(var j=0;j<=G.k;j++){var m=G.m[j],key=tfKey(m[0]);
+    if(!cu||cu.key!==key){cu={key:key,o:m[1],h:m[2],l:m[3],c:m[4],v:m[5],j1:j};out.push(cu);}
+    else{cu.h=Math.max(cu.h,m[2]);cu.l=Math.min(cu.l,m[3]);cu.c=m[4];cu.v+=m[5];cu.j1=j;}}
+  return out;}
+function nTF(){var s={};G.m.forEach(function(m){s[tfKey(m[0])]=1;});return Object.keys(s).length;}
+// EMA on the chosen timeframe. Warm-up uses the server's prior 5-min closes, so values never peek ahead.
+function emaArr(p,cs){if(!G||!cs.length)return null;var key=G.d.session+"|"+cfg.mode+"|"+TF+"|"+p,w=ECACHE[key];
+  if(w==null){var pre=G.d.pre||[],step=Math.max(1,Math.round(TF/5)),src=[];for(var i=pre.length-1;i>=0;i-=step)src.unshift(pre[i]);
+    var k=2/(p+1),e=src.length?src[0]:cs[0].c;src.forEach(function(c,i){e=i?c*k+e*(1-k):c;});w=ECACHE[key]=src.length?e:null;}
+  var k2=2/(p+1),e2=w,out=[];cs.forEach(function(c,i){e2=(e2==null&&i===0)?c.c:c.c*k2+e2*(1-k2);out.push(Math.round(e2*100)/100);});return out;}
+function vwapArr(cs){var v=G&&G.d.ind&&G.d.ind.vwap;if(!v)return null;return cs.map(function(c){return v[Math.min(v.length-1,Math.floor(c.j1/5))];});}
+function lineDefs(cs){cs=cs||candles();var a=EMAS.map(function(e){return {k:"m"+e.id,c:e.c,w:1,on:e.on,n:"EMA "+e.p,arr:e.on?emaArr(e.p,cs):null};});
+  a.push({k:"vwap",c:VW.c,w:2,on:VW.on,n:"VWAP",arr:VW.on?vwapArr(cs):null});return a;}
+function syncLines(cs){if(!CH)return;cs=cs||candles();var defs=lineDefs(cs),keep={};
   defs.forEach(function(d){keep[d.k]=1;if(!LS[d.k])LS[d.k]=CH.addSeries(LW.LineSeries,{priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false});
     LS[d.k].applyOptions({color:d.c,lineWidth:d.w,visible:d.on});
-    if(G&&G.bars){var vis=G.bars.slice(0,G.i+1);LS[d.k].setData(d.on&&d.arr?vis.map(function(b,i){return {time:tOf(b[0]),value:d.arr[i]};}):[]);}});
+    LS[d.k].setData(d.on&&d.arr?cs.map(function(c,i){return {time:tOf(c.key),value:d.arr[i]};}):[]);});
   Object.keys(LS).forEach(function(k){if(!keep[k]){CH.removeSeries(LS[k]);delete LS[k];}});}
 function initChart(){
   if(CH||!LW)return;var c=tvColors(),el=$("chart");
   CH=LW.createChart(el,{autoSize:true,layout:{background:{type:"solid",color:c.bg},textColor:c.text,fontFamily:"-apple-system,BlinkMacSystemFont,Trebuchet MS,Roboto,Ubuntu,sans-serif",fontSize:11,attributionLogo:true},
     grid:{vertLines:{color:c.grid},horzLines:{color:c.grid}},crosshair:{mode:0,vertLine:{color:c.cross,labelBackgroundColor:"#2a2e39"},horzLine:{color:c.cross,labelBackgroundColor:"#2a2e39"}},
-    rightPriceScale:{borderColor:c.border},handleScroll:{mouseWheel:false,pressedMouseMove:true,horzTouchDrag:true,vertTouchDrag:false},handleScale:{mouseWheel:false,pinch:true,axisPressedMouseMove:true},timeScale:{borderColor:c.border,timeVisible:true,secondsVisible:false,rightOffset:8,barSpacing:9,minBarSpacing:3,
+    rightPriceScale:{borderColor:c.border},handleScroll:{mouseWheel:false,pressedMouseMove:true,horzTouchDrag:true,vertTouchDrag:false},handleScale:{mouseWheel:false,pinch:true,axisPressedMouseMove:true},timeScale:{borderColor:c.border,timeVisible:true,secondsVisible:false,rightOffset:8,barSpacing:9,minBarSpacing:2,
       tickMarkFormatter:function(t){return fmtT(mOf(t)).replace(/([ap])$/,"");}},
     localization:{timeFormatter:function(t){return fmtT(mOf(t))+" PT";},priceFormatter:function(p){return p.toFixed(2);}}});
   CS=CH.addSeries(LW.CandlestickSeries,{autoscaleInfoProvider:function(orig){var r=orig();if(r&&r.priceRange&&G&&G.pos){var ps=[G.pos.stop,G.pos.tgt,G.pos.entry].filter(function(x){return x!=null;});r.priceRange.minValue=Math.min.apply(null,[r.priceRange.minValue].concat(ps));r.priceRange.maxValue=Math.max.apply(null,[r.priceRange.maxValue].concat(ps));}return r;},upColor:UP,downColor:DN,borderVisible:false,wickUpColor:UP,wickDownColor:DN,priceLineColor:BLUE,priceLineStyle:2});
@@ -558,12 +583,13 @@ function initChart(){
   VS=CH.addSeries(LW.HistogramSeries,{priceFormat:{type:"volume"},priceScaleId:"",lastValueVisible:false,priceLineVisible:false});
   VS.priceScale().applyOptions({scaleMargins:{top:0.82,bottom:0}});
   MK=LW.createSeriesMarkers(CS,[]);
-  CH.subscribeCrosshairMove(function(p){var d=p&&p.seriesData&&p.seriesData.get(CS);legend(d?[0,d.open,d.high,d.low,d.close]:null);indLegend(d&&p.time!=null?G.bars.findIndex(function(b){return tOf(b[0])===p.time;}):null);});
+  CH.subscribeCrosshairMove(function(p){var d=p&&p.seriesData&&p.seriesData.get(CS);legend(d?[0,d.open,d.high,d.low,d.close]:null);
+    var cs=candles();indLegend(d&&p.time!=null?cs.findIndex(function(c){return tOf(c.key)===p.time;}):null,cs);});
 }
-function legend(b){if(!G)return;b=b||G.bars[G.i];var ch=b[4]-b[1],up=ch>=0,c=up?"pos2":"neg2";
+function legend(b){if(!G)return;if(!b){var cs=candles(),l=cs[cs.length-1];if(!l)return;b=[0,l.o,l.h,l.l,l.c];}var ch=b[4]-b[1],up=ch>=0,c=up?"pos2":"neg2";
   $("ohlc").innerHTML='O<b class="'+c+'">'+b[1].toFixed(2)+'</b> H<b class="'+c+'">'+b[2].toFixed(2)+'</b> L<b class="'+c+'">'+b[3].toFixed(2)+'</b> C<b class="'+c+'">'+b[4].toFixed(2)+'</b> <b class="'+c+'">'+(up?"+":"")+ch.toFixed(2)+'</b>';}
-function indLegend(i){if(!G||!G.bars){$("indLeg").innerHTML="";return;}if(i==null||i<0||i>G.i)i=G.i;
-  $("indLeg").innerHTML=lineDefs().filter(function(d){return d.on&&d.arr;}).map(function(d){return '<span style="color:'+d.c+'">'+d.n+' <b>'+d.arr[i].toFixed(2)+'</b></span>';}).join("");}
+function indLegend(i,cs){if(!G||!G.m){$("indLeg").innerHTML="";return;}cs=cs||candles();if(i==null||i<0||i>=cs.length)i=cs.length-1;
+  $("indLeg").innerHTML=lineDefs(cs).filter(function(d){return d.on&&d.arr&&d.arr[i]!=null;}).map(function(d){return '<span style="color:'+d.c+'">'+d.n+' <b>'+d.arr[i].toFixed(2)+'</b></span>';}).join("");}
 function drawLevels(){LVL.forEach(function(l){CS.removePriceLine(l);});LVL=[];if(!KEYLV.on||!G.d.lv)return;var c=tvColors();
   Object.keys(LVN).forEach(function(k){var v=G.d.lv[k];if(v==null)return;LVL.push(CS.createPriceLine({price:v,color:k.indexOf("on")===0?KEYLV.oc:KEYLV.c,lineWidth:1,lineStyle:1,axisLabelVisible:true,title:LVN[k]}));});}
 function indMenu(){
@@ -595,31 +621,37 @@ function indMenu(){
     if(k==="vw")VW.c=ci.value;else if(k==="lv")KEYLV.c=ci.value;else KEYLV.oc=ci.value;if(k!=="vw"&&G&&CS)drawLevels();changed();});});
   m.querySelectorAll('input').forEach(function(x){x.addEventListener("keydown",function(ev){ev.stopPropagation();});});
 }
-function candleOf(b){return {time:tOf(b[0]),open:b[1],high:b[2],low:b[3],close:b[4]};}
-function volOf(b){var c=tvColors();return {time:tOf(b[0]),value:b[5],color:b[4]>=b[1]?c.volU:c.volD};}
+function candleOf(c){return {time:tOf(c.key),open:c.o,high:c.h,low:c.l,close:c.c};}
+function volOf(c){var t=tvColors();return {time:tOf(c.key),value:c.v,color:c.c>=c.o?t.volU:t.volD};}
+var drawnN=-1;
 function drawChart(){
   if(!LW){$("chart").innerHTML='<p class="mut sm" style="padding:16px">Chart failed to load. Refresh the page.</p>';return;}
-  initChart();var key=G.d.session+"|"+cfg.mode;
-  if(key!==drawnKey||G.i<drawnI){var vis=G.bars.slice(0,G.i+1);CS.setData(vis.map(candleOf));VS.setData(vis.map(volOf));drawnKey=key;drawnI=G.i;
-    syncLines();drawLevels();
-    CH.timeScale().setVisibleLogicalRange({from:-1,to:G.bars.length+4});}
-  else{for(var k=drawnI+1;k<=G.i;k++){CS.update(candleOf(G.bars[k]));VS.update(volOf(G.bars[k]));
-      lineDefs().forEach(function(d){if(d.on&&d.arr&&LS[d.k])LS[d.k].update({time:tOf(G.bars[k][0]),value:d.arr[k]});});}drawnI=G.i;}
+  initChart();var key=G.d.session+"|"+cfg.mode+"|"+TF,cs=candles();
+  if(key!==drawnKey||cs.length<drawnN||G.k<drawnK){CS.setData(cs.map(candleOf));VS.setData(cs.map(volOf));drawnKey=key;drawLevels();
+    var tot=nTF(),fit=Math.max(30,Math.floor(($("chart").clientWidth||600)/7));
+    CH.timeScale().setVisibleLogicalRange(tot+4<=fit?{from:-1,to:tot+4}:{from:Math.max(-1,cs.length-Math.round(fit*0.75)),to:cs.length+Math.round(fit*0.25)});}
+  else{for(var n=Math.max(0,drawnN-1);n<cs.length;n++){CS.update(candleOf(cs[n]));VS.update(volOf(cs[n]));}}
+  drawnN=cs.length;drawnK=G.k;syncLines(cs);
   PL.forEach(function(l){CS.removePriceLine(l);});PL=[];
   if(G.pos){var p=G.pos,lbl=(p.side>0?"Long ":"Short ")+p.qty;
     PL.push(CS.createPriceLine({price:p.entry,color:BLUE,lineWidth:2,lineStyle:0,axisLabelVisible:true,title:lbl}));
     PL.push(CS.createPriceLine({price:p.stop,color:DN,lineWidth:1,lineStyle:2,axisLabelVisible:true,title:"SL "+usd(-p.risk)}));
     if(p.tgt!=null)PL.push(CS.createPriceLine({price:p.tgt,color:UP,lineWidth:1,lineStyle:2,axisLabelVisible:true,title:"TP "+usd(p.risk*(Math.abs(p.tgt-p.entry)/Math.abs(p.entry-p.stop)),true)}));}
-  var ms=[{time:tOf(G.bars[G.d.startIdx][0]),position:"aboveBar",color:"#f5a623",shape:"square",size:0.5,text:"Open"}];
-  G.marks.forEach(function(m){var t=tOf(G.bars[m.i][0]);
+  var openK=G.d.startIdx*5,ms=[];
+  if(G.k>=openK)ms.push({time:tOf(tfKey(G.m[openK][0])),position:"aboveBar",color:"#f5a623",shape:"square",size:0.5,text:"Open"});
+  G.marks.forEach(function(m){var mk=m.k!=null?m.k:m.i*5;if(mk>G.k||!G.m[mk])return;var t=tOf(tfKey(G.m[mk][0]));
     if(m.t==="b")ms.push({time:t,position:"belowBar",color:BLUE,shape:"arrowUp",text:"Buy"});
     else if(m.t==="s")ms.push({time:t,position:"aboveBar",color:DN,shape:"arrowDown",text:"Sell"});
-    else{var tr=G.trades.filter(function(x){return x.xi===m.i;}).pop();ms.push({time:t,position:"inBar",color:"#f5a623",shape:"circle",size:0.7,text:tr?usd(tr.pnl,true):""});}});
-  ms.sort(function(a,b){return a.time-b.time;});MK.setMarkers(G.d.startIdx<=G.i?ms:ms.filter(function(x){return x.text!=="Open";}));
-  legend();indLegend();
+    else{var tr=G.trades.filter(function(x){return x.xi*(x.mk?1:5)===mk;}).pop();ms.push({time:t,position:"inBar",color:"#f5a623",shape:"circle",size:0.7,text:tr?usd(tr.pnl,true):""});}});
+  ms.sort(function(a,b){return a.time-b.time;});MK.setMarkers(ms);
+  legend();indLegend(null,cs);
 }
+var drawnK=-1;
 function retheme(){if(!CH)return;var c=tvColors();CH.applyOptions({layout:{background:{type:"solid",color:c.bg},textColor:c.text},grid:{vertLines:{color:c.grid},horzLines:{color:c.grid}},rightPriceScale:{borderColor:c.border},timeScale:{borderColor:c.border}});
-  if(G){VS.setData(G.bars.slice(0,G.i+1).map(volOf));}}
+  if(G){VS.setData(candles().map(volOf));}}
+function setTF(v){if(TFS.indexOf(v)<0)return;TF=v;try{localStorage.setItem("bs_gym_tf",String(v));}catch(e){}
+  document.querySelectorAll("#sTF button").forEach(function(b){b.classList.toggle("on",+b.getAttribute("data-v")===v);});
+  ECACHE={};drawnKey="";if(G)render();}
 /* ---------- results + leaderboard ---------- */
 function grade(pnl,blown,n){if(blown)return["F","Hit the daily loss limit. Size down and wait for cleaner setups."];if(!n)return["–","No trades. Sitting out is a position, but the Gym is for reps."];
   if(pnl>=500)return["A","Strong session. Protect it: this is where traders give it back."];if(pnl>=200)return["B","Solid, green and controlled."];if(pnl>=0)return["C","Green is green. Look for one more clean setup next time."];return["D","Red, but you lived to fight another day. Review your entries."];}
@@ -704,13 +736,14 @@ function loadLb(){
 }
 /* ---------- controls ---------- */
 function stop(){if(timer){clearInterval(timer);timer=null;}$("bPlay").textContent="▶ Play";}
-function togglePlay(){if(timer){stop();return;}if(!G||G.ended)return;timer=setInterval(step,cfg.speed);$("bPlay").textContent="❚❚ Pause";}
+function togglePlay(){if(timer){stop();return;}if(!G||G.ended)return;timer=setInterval(step,Math.max(60,Math.round(cfg.speed/5)));$("bPlay").textContent="❚❚ Pause";}
 function setMode(m){cfg.mode=m;renderSim();document.querySelectorAll("#sMode button").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-v")===m);});load();}
 function seg(id,key,num){$(id).querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){cfg[key]=num?+b.getAttribute("data-v"):b.getAttribute("data-v");$(id).querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});if(key==="speed"&&timer){stop();togglePlay();}render();});});}
 document.querySelectorAll("#sMode button").forEach(function(b){b.addEventListener("click",function(){setMode(b.getAttribute("data-v"));});});
 $("sLb").querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){lbMode=b.getAttribute("data-v");$("sLb").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});loadLb();});});
 $("qm").onclick=function(){var q=[1,2,3,5,10],i=q.indexOf(cfg.qty);cfg.qty=q[Math.max(0,i-1)];render();};$("qp").onclick=function(){var q=[1,2,3,5,10],i=q.indexOf(cfg.qty);cfg.qty=q[Math.min(q.length-1,i+1)];render();};seg("sStop","stop",1);$("sStop").querySelectorAll("button").forEach(function(bt){bt.addEventListener("click",function(){$("stopIn").value=bt.getAttribute("data-v");});});
 $("stopIn").addEventListener("input",function(){var v=parseFloat($("stopIn").value);if(isFinite(v)&&v>=1&&v<=300){cfg.stop=Math.round(v*4)/4;$("sStop").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",+x.getAttribute("data-v")===cfg.stop);});render();}});seg("sTgt","r",1);seg("sSpd","speed",1);
+document.querySelectorAll("#sTF button").forEach(function(b){b.classList.toggle("on",+b.getAttribute("data-v")===TF);b.addEventListener("click",function(){setTF(+b.getAttribute("data-v"));});});
 $("bBuy").onclick=function(){enter(1);};$("bSell").onclick=function(){enter(-1);};$("bClose").onclick=closePos;$("bStep").onclick=step;$("bPlay").onclick=togglePlay;
 document.addEventListener("keydown",function(e){if(/INPUT|TEXTAREA/.test((e.target||{}).tagName))return;var k=e.key.toLowerCase();
   if(k==="b")enter(1);else if(k==="s")enter(-1);else if(k==="c")closePos();else if(k==="arrowright"||k==="n"){e.preventDefault();step();}else if(k===" "){e.preventDefault();togglePlay();}});
