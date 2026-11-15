@@ -454,6 +454,7 @@ tv-economic-calendar{display:block;width:100%;height:100%}
 .fine{color:var(--mute2);font-size:12.5px;line-height:1.5;margin-top:18px;text-align:center}
 .done{text-align:center}.done .big{font-size:44px}.done h2{margin:6px 0}
 .done .go2{display:grid;gap:10px;margin-top:18px}
+.nm2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .hide{display:none!important}
 @media (max-width:880px){.su{grid-template-columns:1fr;gap:28px;padding:36px 0 56px}.su .pitch{order:2}.su .lede{margin-bottom:18px}}
 </style>
@@ -505,7 +506,7 @@ tv-economic-calendar{display:block;width:100%;height:100%}
     <div id="authBox">
       <div class="tabs" role="tablist"><button type="button" id="tSign" class="on">Create account</button><button type="button" id="tLog">Log in</button></div>
       <h2 id="aT">Create your free account</h2><div class="sub" id="aS">Takes 30 seconds.</div>
-      <div id="nameRow"><label for="aName">First name</label><input id="aName" type="text" autocomplete="given-name" placeholder="First name"></div>
+      <div id="nameRow" class="nm2"><div><label for="aName">First name</label><input id="aName" type="text" autocomplete="given-name" placeholder="First name" maxlength="40"></div><div><label for="aLast">Last name</label><input id="aLast" type="text" autocomplete="family-name" placeholder="Last name" maxlength="40"></div></div>
       <label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="email" placeholder="you@email.com">
       <label for="aPass">Password</label><input id="aPass" type="password" autocomplete="new-password" placeholder="8+ characters">
       <label class="agr" id="ageRow"><input type="checkbox" id="aAge"><span>I'm 18 or older and agree to get trading tips and updates by email (unsubscribe anytime).</span></label>
@@ -589,7 +590,7 @@ function setMode(m){mode=m;var su=m==="signup";
   if(location.hash!==(su?"":"#login"))history.replaceState(null,"",location.pathname+location.search+(su?"":"#login"));}
 $("tSign").onclick=function(){setMode("signup");};$("tLog").onclick=function(){setMode("login");};
 $("aSwap").onclick=function(){setMode(mode==="signup"?"login":"signup");};
-function kit(name,email){try{var f=new FormData();f.append("email_address",email);if(name)f.append("fields[first_name]",name);fetch(KIT_FORM,{method:"POST",mode:"no-cors",body:f});}catch(e){}}
+function kit(name,last,email){try{var f=new FormData();f.append("email_address",email);if(name)f.append("fields[first_name]",name);fetch(KIT_FORM,{method:"POST",mode:"no-cors",body:f});}catch(e){}}
 function showIn(u){
   $("authBox").classList.add("hide");$("inBox").classList.remove("hide");
   var n=(u.user_metadata&&u.user_metadata.first_name)||"";
@@ -600,16 +601,17 @@ function showIn(u){
 function showOut(){$("inBox").classList.add("hide");$("authBox").classList.remove("hide");}
 function go(){
   if(!sb){msg("Accounts are briefly unavailable. Try again in a minute.",1);return;}
-  var name=$("aName").value.trim(),email=$("aEmail").value.trim(),pass=$("aPass").value,b=$("aGo");
+  var name=$("aName").value.trim(),last=$("aLast").value.trim(),email=$("aEmail").value.trim(),pass=$("aPass").value,b=$("aGo");
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){msg("Enter a valid email.",1);return;}
   if(mode==="signup"){
     if(!name){msg("Add your first name.",1);return;}
+    if(!last){msg("Add your last name.",1);return;}
     if(pass.length<8){msg("Password needs at least 8 characters.",1);return;}
     if(!$("aAge").checked){msg("Please confirm you're 18 or older.",1);return;}
     b.disabled=true;msg("Creating your account…");
-    sb.auth.signUp({email:email,password:pass,options:{data:{first_name:name,age_confirmed:true},emailRedirectTo:location.origin+"/signup/"+(next?"?next="+encodeURIComponent(next):"")}}).then(function(r){b.disabled=false;
+    sb.auth.signUp({email:email,password:pass,options:{data:{first_name:name,last_name:last,full_name:name+" "+last,age_confirmed:true},emailRedirectTo:location.origin+"/signup/"+(next?"?next="+encodeURIComponent(next):"")}}).then(function(r){b.disabled=false;
       if(r.error){msg(r.error.message,1);return;}
-      kit(name,email);try{localStorage.setItem("bs_joined","1");}catch(e){}
+      kit(name,last,email);try{localStorage.setItem("bs_joined","1");}catch(e){}
       justDid=true;
       if(r.data.session){msg("");}
       else msg("Almost done: check your email and tap the confirmation link. Then come back and log in.");
@@ -623,7 +625,7 @@ function go(){
   }
 }
 $("aGo").onclick=go;
-["aName","aEmail","aPass"].forEach(function(id){$(id).addEventListener("keydown",function(e){if(e.key==="Enter")go();});});
+["aName","aLast","aEmail","aPass"].forEach(function(id){$(id).addEventListener("keydown",function(e){if(e.key==="Enter")go();});});
 $("aForgot").onclick=function(){if(!sb)return;var email=$("aEmail").value.trim();if(!email){msg("Enter your email above first.",1);return;}
   sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+"/journal/"}).then(function(r){msg(r.error?r.error.message:"Check your email for a reset link.",!!r.error);});};
 $("aOut").onclick=function(){if(sb)sb.auth.signOut();};
