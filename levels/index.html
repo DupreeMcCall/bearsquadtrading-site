@@ -388,5 +388,30 @@ document.querySelectorAll(".thm button").forEach(function(b){b.addEventListener(
 apply(root.getAttribute("data-theme")==="light"?"light":"dark");})();
 </script>
 <script>(function(){function o(){if(location.hash==="#how"){var d=document.getElementById("how");if(d){d.open=true;setTimeout(function(){d.scrollIntoView({behavior:"smooth",block:"start"});},300);}}}o();addEventListener("hashchange",o);})();</script>
+<script>/* Bear Squad: signed-in aware buttons */
+(function(){
+function sess(){try{var j=JSON.parse(localStorage.getItem("sb-uqitaxzmaoqbebucfnbe-auth-token")||"null");return j&&j.user&&j.refresh_token?j.user:null;}catch(e){return null;}}
+function apply(){
+  var u=sess();if(!u)return;
+  var fn=((u.user_metadata&&u.user_metadata.first_name)||"").trim()||"My account";
+  var ok=function(a){return a.closest("header,.mnav,.sh-mnav,.sh-mbtn,.ctas")||a.classList.contains("big");};
+  [].forEach.call(document.querySelectorAll('a[href^="/signup/"]'),function(a){
+    if(!ok(a)||a.dataset.bsAuth)return;a.dataset.bsAuth="1";
+    var t=a.textContent.replace(/\s+/g," ").trim();
+    if(/^(Sign in|Log in)$/i.test(t)){
+      var svg=a.querySelector("svg");a.textContent="";if(svg)a.appendChild(svg);
+      a.appendChild(document.createTextNode(fn));a.href="/signup/";a.title="Your account";
+    }else{
+      a.href="/gym/";
+      var dl=a.querySelector(".dl"),ml=a.querySelector(".ml");
+      if(dl||ml){if(dl)dl.textContent="Open the Gym";if(ml)ml.textContent="The Gym";}
+      else a.textContent=(a.closest(".ctas")||a.classList.contains("big"))?"Continue to the Gym":"Open the Gym";
+      var c=a.closest(".ctas");if(c)[].forEach.call(c.querySelectorAll('a[href="/gym/"]'),function(x){if(x!==a)x.style.display="none";});
+    }
+  });
+}
+apply();window.addEventListener("storage",function(e){if(e.key&&e.key.indexOf("auth-token")>-1)location.reload();});
+})();
+</script>
 </body>
 </html>
