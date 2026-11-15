@@ -740,7 +740,7 @@ function draw(d){
   var h=ks.map(function(k,i){var val=b[k];return '<i class="'+(val>=0?"up":"dn")+(i===pi?" px":"")+'"><b style="height:'+(Math.abs(val)/mx*50).toFixed(1)+'%"></b></i>';}).join("");
   $("lvBars").innerHTML=h;
   if($("lvMini")&&m==="NQ")$("lvMini").innerHTML=ks.map(function(k){var val=b[k];return '<i class="'+(val>=0?"up":"dn")+'" style="height:'+Math.max(4,Math.abs(val)/mx*100).toFixed(0)+'%"></i>';}).join("");
-  $("lvUpd").textContent="Updated "+new Date(d.generated).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT · delayed ~15 min";
+  $("lvUpd").textContent=(function(){var p=new Date(new Date().toLocaleString("en-US",{timeZone:"America/Los_Angeles"}));var dd=p.getDay(),mm=p.getHours()*60+p.getMinutes();return dd>0&&dd<6&&mm>=390&&mm<780;})()?"Updated "+new Date(d.generated).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/Los_Angeles"})+" PT · delayed ~15 min":"Market closed · last session's levels";
 }
 $("lvM").querySelectorAll("button").forEach(function(btn){btn.addEventListener("click",function(){m=btn.getAttribute("data-v");$("lvM").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===btn);});load();});});
 load();setInterval(function(){cache={};load();},300000);
@@ -827,7 +827,7 @@ function apply(){
     var t=a.textContent.replace(/\s+/g," ").trim();
     if(/^(Sign in|Log in)$/i.test(t)){
       var svg=a.querySelector("svg");a.textContent="";if(svg)a.appendChild(svg);
-      a.appendChild(document.createTextNode(fn));a.href="/signup/";a.title="Your account";
+      a.appendChild(document.createTextNode(svg?fn:"👤 "+fn));a.href="/signup/";a.title="Your account";
     }else{
       a.href="/gym/";
       var dl=a.querySelector(".dl"),ml=a.querySelector(".ml");
@@ -837,7 +837,7 @@ function apply(){
     }
   });
 }
-apply();window.addEventListener("storage",function(e){if(e.key&&e.key.indexOf("auth-token")>-1)location.reload();});
+apply();var was=!!sess();setInterval(function(){if(!!sess()!==was){was=!was;if(was)apply();else location.reload();}},2000);window.addEventListener("storage",function(e){if(e.key&&e.key.indexOf("auth-token")>-1)location.reload();});
 })();
 </script>
 </body>
