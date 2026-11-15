@@ -62,6 +62,7 @@ button{font-family:inherit}
 .lbl{font-family:Rajdhani,sans-serif;font-weight:700;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-bottom:6px;white-space:nowrap}
 .risk{font-size:13px;color:var(--mute);margin:10px 0}.risk b{font-weight:700}
 .big{border:0;border-radius:12px;padding:15px;font:700 17px Inter,sans-serif;cursor:pointer;letter-spacing:.02em}
+.tvclose b{margin-left:6px;padding:2px 8px;border-radius:4px;background:#1a1300}.tvclose b.pos{color:#34d399}.tvclose b.neg{color:#f87171}.tvclose kbd{margin-left:6px;font:600 11px monospace;opacity:.6;border:1px solid #1a130066;border-radius:3px;padding:1px 4px}.tvclose:hover{filter:brightness(1.08)}
 .big.buy{background:var(--pos);color:#04130B}.big.sell{background:var(--neg);color:#fff}.big.close{grid-column:1/-1;background:var(--gold);color:#1a1300}
 .big:disabled,.btnx:disabled{opacity:.4;cursor:not-allowed}
 .play{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}.play .seg{margin-left:auto}
@@ -119,7 +120,7 @@ html[data-theme="light"] .game{--tvbg:#ffffff;--tvpanel:#f0f3fa;--tvline:#e0e3eb
 .qbox{display:flex;align-items:center;border:1px solid var(--tvline);border-radius:4px;background:var(--tvpanel)}
 .qbox button{border:0;background:transparent;color:var(--tvtext);width:30px;height:30px;font-size:17px;cursor:pointer}
 .qbox b{min-width:28px;text-align:center;font-size:15px}
-.tvclose{width:100%;margin-top:8px;border:1px solid var(--tvline);background:var(--tvpanel);color:var(--tvtext);border-radius:4px;padding:11px;font:600 14px -apple-system,BlinkMacSystemFont,"Trebuchet MS",Roboto,sans-serif;cursor:pointer}
+.tvclose{width:100%;margin-top:8px;border:1px solid #f5c542;background:#f5c542;color:#1a1300;border-radius:6px;padding:14px;font:800 15px -apple-system,BlinkMacSystemFont,"Trebuchet MS",Roboto,sans-serif;cursor:pointer}
 .brk{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-top:12px}
 .game .limbar{background:var(--tvline)}
 .game .posline{color:var(--tvtext)}
@@ -335,7 +336,7 @@ var p=location.pathname;hd.querySelectorAll(".sh-mi").forEach(function(a){var h=
         <div class="qty"><small>Qty · MNQ</small><div class="qbox"><button id="qm" aria-label="Less">−</button><b id="qv">1</b><button id="qp" aria-label="More">+</button></div></div>
         <button class="tvbuy" id="bBuy"><small>BUY</small><b id="pxB">–</b></button>
       </div>
-      <button class="tvclose hide" id="bClose">Close position</button>
+      <button class="tvclose hide" id="bClose" title="Close the whole position at the current price (shortcut: X)">Exit all · flatten now</button>
       <div class="brk">
         <div><div class="lbl">Stop loss (pts)</div><div class="stoprow"><input id="stopIn" type="number" inputmode="decimal" min="1" max="300" step="0.25" value="20" aria-label="Stop loss in points"><div class="seg mini" id="sStop"><button data-v="10">10</button><button data-v="20" class="on">20</button><button data-v="30">30</button><button data-v="50">50</button></div></div></div>
         <div><div class="lbl">Take profit</div><div class="seg mini" id="sTgt"><button data-v="0" class="on">None</button><button data-v="1">1R</button><button data-v="2">2R</button><button data-v="3">3R</button></div></div>
@@ -521,7 +522,7 @@ function enter(side){
   G.pos={side:side,qty:cfg.qty,entry:e,stop:e-side*cfg.stop,tgt:cfg.r?e+side*cfg.stop*cfg.r:null,at:curK(),atF:G.f,risk:risk};
   G.marks.push({k:curK(),px:e,t:side>0?"b":"s"});persist();render();
 }
-function closePos(){if(G&&G.pos&&!G.ended){exitPos(price(),"manual");render();}}
+function closePos(){if(G&&G.pos&&!G.ended){exitPos(price(),"your exit");render();}}
 function end(){
   if(G.ended&&!G.pos){render();return;}
   if(G.pos)exitPos(price(),"session end");
@@ -543,7 +544,7 @@ function render(){
   var risk=cfg.stop*PV*cfg.qty;
   $("riskLine").innerHTML='Risk <b class="neg">'+usd(risk)+'</b> · '+(cfg.r?'Target <b class="pos">'+usd(risk*cfg.r)+'</b>':'No target, you manage the exit')+' · '+cfg.qty+' MNQ · stop '+cfg.stop+' pts'+(risk>remaining()?' <span class="neg">· over your remaining limit</span>':'');
   var lp=price();$("pxB").textContent=(lp+0.25).toFixed(2);$("pxS").textContent=lp.toFixed(2);$("qv").textContent=cfg.qty;
-  $("bBuy").disabled=!!G.pos||G.ended;$("bSell").disabled=!!G.pos||G.ended;$("bClose").classList.toggle("hide",!G.pos);
+  $("bBuy").disabled=!!G.pos||G.ended;$("bSell").disabled=!!G.pos||G.ended;$("bClose").classList.toggle("hide",!G.pos);if(G.pos){var op=openPnl();$("bClose").innerHTML="Exit all · flatten now <b class=\""+cls(op)+"\">"+usd(op,true)+"</b> <kbd>X</kbd>";}
   ["bClose","bStep","bPlay","qm","qp"].forEach(function(id){$(id).disabled=G.ended;});
   if(G.pos){var p=G.pos;msg((p.side>0?'<b class="pos">LONG</b>':'<b class="neg">SHORT</b>')+' '+p.qty+' MNQ @ '+p.entry.toFixed(2)+' · stop '+p.stop.toFixed(2)+(p.tgt!=null?' · target '+p.tgt.toFixed(2):' · no target'));}
   else if(G.ended)msg(G.blown?(cfg.mode==="sim"&&ddLeft()<MINRISK?'<b class="neg">Max drawdown hit.</b> Challenge over.':'<b class="neg">Daily loss limit hit.</b> '+(cfg.mode==="sim"?"Done for this day.":"Account is done for today.")):"Session complete.");
@@ -765,7 +766,7 @@ $("stopIn").addEventListener("input",function(){var v=parseFloat($("stopIn").val
 document.querySelectorAll("#sTF button").forEach(function(b){b.classList.toggle("on",+b.getAttribute("data-v")===TF);b.addEventListener("click",function(){setTF(+b.getAttribute("data-v"));});});
 $("bBuy").onclick=function(){enter(1);};$("bSell").onclick=function(){enter(-1);};$("bClose").onclick=closePos;$("bStep").onclick=step;$("bPlay").onclick=togglePlay;
 document.addEventListener("keydown",function(e){if(/INPUT|TEXTAREA/.test((e.target||{}).tagName))return;var k=e.key.toLowerCase();
-  if(k==="b")enter(1);else if(k==="s")enter(-1);else if(k==="c")closePos();else if(k==="arrowright"||k==="n"){e.preventDefault();step();}else if(k===" "){e.preventDefault();togglePlay();}});
+  if(k==="b")enter(1);else if(k==="s")enter(-1);else if(k==="c"||k==="x")closePos();else if(k==="arrowright"||k==="n"){e.preventDefault();step();}else if(k===" "){e.preventDefault();togglePlay();}});
 window.addEventListener("bs-theme",retheme);
 indMenu();
 $("bInd").onclick=function(e){e.stopPropagation();var m=$("indMenu"),open=m.classList.contains("hide"),bi=$("bInd");m.style.top=(bi.offsetTop+bi.offsetHeight+6)+"px";m.classList.toggle("hide",!open);$("bInd").setAttribute("aria-expanded",open?"true":"false");};

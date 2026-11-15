@@ -145,7 +145,7 @@ function enter(side){
   G.pos={side:side,qty:cfg.qty,entry:e,stop:e-side*cfg.stop,tgt:cfg.r?e+side*cfg.stop*cfg.r:null,at:curK(),atF:G.f,risk:risk};
   G.marks.push({k:curK(),px:e,t:side>0?"b":"s"});persist();render();
 }
-function closePos(){if(G&&G.pos&&!G.ended){exitPos(price(),"manual");render();}}
+function closePos(){if(G&&G.pos&&!G.ended){exitPos(price(),"your exit");render();}}
 function end(){
   if(G.ended&&!G.pos){render();return;}
   if(G.pos)exitPos(price(),"session end");
@@ -167,7 +167,7 @@ function render(){
   var risk=cfg.stop*PV*cfg.qty;
   $("riskLine").innerHTML='Risk <b class="neg">'+usd(risk)+'</b> · '+(cfg.r?'Target <b class="pos">'+usd(risk*cfg.r)+'</b>':'No target, you manage the exit')+' · '+cfg.qty+' MNQ · stop '+cfg.stop+' pts'+(risk>remaining()?' <span class="neg">· over your remaining limit</span>':'');
   var lp=price();$("pxB").textContent=(lp+0.25).toFixed(2);$("pxS").textContent=lp.toFixed(2);$("qv").textContent=cfg.qty;
-  $("bBuy").disabled=!!G.pos||G.ended;$("bSell").disabled=!!G.pos||G.ended;$("bClose").classList.toggle("hide",!G.pos);
+  $("bBuy").disabled=!!G.pos||G.ended;$("bSell").disabled=!!G.pos||G.ended;$("bClose").classList.toggle("hide",!G.pos);if(G.pos){var op=openPnl();$("bClose").innerHTML="Exit all · flatten now <b class=\""+cls(op)+"\">"+usd(op,true)+"</b> <kbd>X</kbd>";}
   ["bClose","bStep","bPlay","qm","qp"].forEach(function(id){$(id).disabled=G.ended;});
   if(G.pos){var p=G.pos;msg((p.side>0?'<b class="pos">LONG</b>':'<b class="neg">SHORT</b>')+' '+p.qty+' MNQ @ '+p.entry.toFixed(2)+' · stop '+p.stop.toFixed(2)+(p.tgt!=null?' · target '+p.tgt.toFixed(2):' · no target'));}
   else if(G.ended)msg(G.blown?(cfg.mode==="sim"&&ddLeft()<MINRISK?'<b class="neg">Max drawdown hit.</b> Challenge over.':'<b class="neg">Daily loss limit hit.</b> '+(cfg.mode==="sim"?"Done for this day.":"Account is done for today.")):"Session complete.");
@@ -389,7 +389,7 @@ $("stopIn").addEventListener("input",function(){var v=parseFloat($("stopIn").val
 document.querySelectorAll("#sTF button").forEach(function(b){b.classList.toggle("on",+b.getAttribute("data-v")===TF);b.addEventListener("click",function(){setTF(+b.getAttribute("data-v"));});});
 $("bBuy").onclick=function(){enter(1);};$("bSell").onclick=function(){enter(-1);};$("bClose").onclick=closePos;$("bStep").onclick=step;$("bPlay").onclick=togglePlay;
 document.addEventListener("keydown",function(e){if(/INPUT|TEXTAREA/.test((e.target||{}).tagName))return;var k=e.key.toLowerCase();
-  if(k==="b")enter(1);else if(k==="s")enter(-1);else if(k==="c")closePos();else if(k==="arrowright"||k==="n"){e.preventDefault();step();}else if(k===" "){e.preventDefault();togglePlay();}});
+  if(k==="b")enter(1);else if(k==="s")enter(-1);else if(k==="c"||k==="x")closePos();else if(k==="arrowright"||k==="n"){e.preventDefault();step();}else if(k===" "){e.preventDefault();togglePlay();}});
 window.addEventListener("bs-theme",retheme);
 indMenu();
 $("bInd").onclick=function(e){e.stopPropagation();var m=$("indMenu"),open=m.classList.contains("hide"),bi=$("bInd");m.style.top=(bi.offsetTop+bi.offsetHeight+6)+"px";m.classList.toggle("hide",!open);$("bInd").setAttribute("aria-expanded",open?"true":"false");};
