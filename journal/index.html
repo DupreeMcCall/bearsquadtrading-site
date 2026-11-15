@@ -613,7 +613,7 @@ function saveTrade(){var t=readForm();
 
 /* ===== accounts ===== */
 var mode="signup";
-function showAuth(m){mode=m;$("aForm").classList.remove("hide");var su=m==="signup";
+function showAuth(m){if(m==="signup"){location.href="/signup/?next=/journal/";return;}mode=m;$("aForm").classList.remove("hide");var su=m==="signup";
   $("aTitle").textContent=su?"Create your account":"Log in to your journal";
   $("aNameRow").classList.toggle("hide",!su);$("aAgeRow").classList.toggle("hide",!su);$("aForgot").classList.toggle("hide",su);
   $("aGo").textContent=su?"Create account":"Log in";$("aSwap").textContent=su?"I already have an account":"Create an account instead";
