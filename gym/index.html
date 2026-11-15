@@ -168,6 +168,26 @@ html,body,a.btn,.card,input,select,textarea,button{transition:background-color .
 .topr{display:flex;align-items:center;gap:14px}
 .brand b,.nav a{white-space:nowrap}
 @media(max-width:480px){.topr{flex-direction:column-reverse;align-items:flex-end;gap:8px}.nav{gap:12px}}
+.simcard{padding:16px 18px}
+.simh{display:flex;align-items:center;gap:10px;margin-bottom:12px}.simh b{font-size:16px}
+.simh .tag{font:700 10.5px "JetBrains Mono",monospace;letter-spacing:.1em;padding:3px 8px;border-radius:6px;background:rgba(31,214,122,.12);color:var(--g1)}
+.simh .lnk{margin-left:auto;background:none;border:0;color:var(--mute);font:600 12.5px Inter,sans-serif;cursor:pointer;text-decoration:underline}
+.simbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:14px}.simbar i{display:block;height:100%;background:linear-gradient(90deg,var(--g3),var(--g1));border-radius:99px}
+.simgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.simgrid div{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.simgrid small{display:block;font:600 10.5px "JetBrains Mono",monospace;letter-spacing:.1em;color:var(--mute);text-transform:uppercase}
+.simgrid b{display:block;font:700 18px "JetBrains Mono",monospace;margin:4px 0 2px}
+.simgrid em{font-style:normal;font-size:11.5px;color:var(--mute)}
+.simrules{margin-top:12px;font-size:13.5px;color:var(--mute)}.simrules summary{cursor:pointer;color:var(--ink);font-weight:600}.simrules ul{margin:8px 0 0 18px;line-height:1.6}
+.simcert{margin:14px 0;border:1px solid rgba(31,214,122,.45);border-radius:14px;padding:22px;text-align:center;background:radial-gradient(400px 160px at 50% 0,rgba(31,214,122,.16),transparent 70%)}
+.simcert span{display:block;font:600 11px "JetBrains Mono",monospace;letter-spacing:.2em;color:var(--mute)}
+.simcert b{display:block;font:800 40px Inter,sans-serif;letter-spacing:.06em;color:var(--g1);margin:6px 0}
+.simcert em{display:block;font-style:normal;font-family:"JetBrains Mono",monospace;font-size:13px}
+.simcert small{display:block;margin-top:8px;color:var(--mute);font-size:11px}
+.gr.gF{background:rgba(232,41,59,.15);color:var(--red)}
+@media (max-width:640px){.simgrid{grid-template-columns:1fr 1fr}.simgrid b{font-size:16px}}
+.seg.modes button{white-space:nowrap;min-width:0}
+@media (max-width:560px){.seg.modes .lgx{display:none}.seg.modes button{font-size:14px;padding-left:4px;padding-right:4px}}
 </style>
 </head>
 <body>
@@ -270,11 +290,12 @@ var p=location.pathname;hd.querySelectorAll(".sh-mi").forEach(function(a){var h=
 <main>
 
   <h1>The Gym</h1>
-  <p class="lead">Put in reps before game time. Replay a real NQ morning candle by candle, trade it like a funded account, and see how you stack up. One shot at the Daily Challenge, unlimited practice.</p>
+  <p class="lead">Put in reps before game time. Replay a real NQ morning candle by candle, trade it like a funded account, and see how you stack up. One shot at the Daily Challenge, unlimited practice, and a multi-day Sim Challenge to see if you can pass an evaluation.</p>
 
-  <div class="seg modes" id="sMode"><button data-v="daily" class="on">🏆 Daily Challenge</button><button data-v="practice">🏋️ Practice</button></div>
+  <div class="seg modes" id="sMode"><button data-v="daily" class="on">🏆 Daily<span class="lgx"> Challenge</span></button><button data-v="practice">🏋️ Practice</button><button data-v="sim">🎯 Sim<span class="lgx"> Challenge</span></button></div>
 
   <div class="card acct" id="acctBar"></div>
+  <div class="card simcard hide" id="simCard"></div>
 
   <div class="card game">
     <div class="ghead">
@@ -353,6 +374,21 @@ var $=function(i){return document.getElementById(i);};
 var PV=2,START=50000,LIMIT=1000,MINRISK=2;
 var user=null,G=null,timer=null;
 var cfg={mode:"daily",qty:1,stop:20,r:0,speed:1500};
+/* ---------- Sim Challenge (all simulated, fake money) ---------- */
+var SIM={target:3000,dd:2000,minDays:5,cons:0.40,step:17},SKEY="bs_gym_sim";
+function simGet(){try{return JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){return null;}}
+function simSave(o){try{localStorage.setItem(SKEY,JSON.stringify(o));}catch(e){}}
+function simNew(){var o={id:Date.now(),seed:Math.floor(Math.random()*100000),days:[],peak:START,status:"active",reason:"",open:null,started:todayPT()};simSave(o);return o;}
+function simS(){var o=simGet();if(!o)o=simNew();
+  if(o.open){var lost=Math.round((o.open.realized-(o.open.risk||0))*100)/100;o.days.push({pnl:lost,n:o.open.n+(o.open.risk?1:0),wins:o.open.wins||0,best:0,session:o.open.session,blown:false,left:true});o.open=null;simSettle(o);simSave(o);}
+  return o;}
+function simTotal(o){return o.days.reduce(function(a,d){return a+d.pnl;},0);}
+function simFloor(o){return Math.min(o.peak-SIM.dd,START);}
+function simBest(o){return o.days.reduce(function(m,d){return Math.max(m,d.pnl);},0);}
+function simSettle(o){var bal=START+simTotal(o);o.peak=Math.max(o.peak,bal);
+  if(bal-simFloor(o)<MINRISK){o.status="failed";o.reason="Hit the $"+SIM.dd.toLocaleString()+" trailing drawdown.";return;}
+  var prof=simTotal(o);if(prof>=SIM.target&&o.days.length>=SIM.minDays&&simBest(o)<=prof*SIM.cons){o.status="passed";o.passed=todayPT();}}
+
 function todayPT(){return new Date().toLocaleDateString("en-CA",{timeZone:"America/Los_Angeles"});}
 function fmtT(m){var h=Math.floor(m/60),mi=m%60,ap=h<12?"a":"p",hh=h%12===0?12:h%12;return hh+":"+("0"+mi).slice(-2)+ap;}
 function usd(v,sign){var a=Math.abs(v),s=v<0?"-":(sign&&v>0?"+":"");return s+"$"+a.toLocaleString("en-US",{minimumFractionDigits:a%1?2:0,maximumFractionDigits:2});}
@@ -371,7 +407,9 @@ function renderAcct(){
 /* ---------- session ---------- */
 function load(){
   stop();$("result").classList.add("hide");$("gTitle").textContent="Loading session…";
-  var u=BASE+"/functions/v1/replay?mode="+cfg.mode+(cfg.mode==="practice"?"&i="+Math.floor(Math.random()*100000):"");
+  var sim=cfg.mode==="sim"?simS():null;renderSim();
+  if(sim&&sim.status!=="active"){G=null;$("gTitle").textContent=sim.status==="passed"?"Sim Challenge passed 🎉":"Sim Challenge failed";$("gSub").textContent="";simEndCard(sim);return;}
+  var u=BASE+"/functions/v1/replay?mode="+(cfg.mode==="sim"?"practice":cfg.mode)+(cfg.mode==="practice"?"&i="+Math.floor(Math.random()*100000):cfg.mode==="sim"?"&i="+(sim.seed+sim.days.length*SIM.step):"");
   fetch(u,H).then(function(r){return r.json();}).then(function(d){
     if(d.error||!d.bars)throw new Error(d.error||"no data");
     drawnKey="";drawnI=-1;G={d:d,bars:d.bars,i:d.startIdx-1,pos:null,trades:[],realized:0,ended:false,blown:false,started:false,marks:[]};
@@ -380,7 +418,8 @@ function load(){
   }).catch(function(){$("gTitle").textContent="Couldn't load a session. Try again in a minute.";});
 }
 function bar(){return G.bars[G.i];}
-function remaining(){return LIMIT+G.realized;}
+function remaining(){var r=LIMIT+G.realized;if(cfg.mode==="sim"){var o=simGet();if(o)r=Math.min(r,START+simTotal(o)+G.realized-simFloor(o));}return r;}
+function ddLeft(){var o=simGet();return o?START+simTotal(o)+G.realized-simFloor(o):Infinity;}
 function openPnl(){if(!G.pos)return 0;return (bar()[4]-G.pos.entry)*G.pos.side*PV*G.pos.qty;}
 function exitPos(px,why){
   var p=G.pos,pnl=Math.round((px-p.entry)*p.side*PV*p.qty*100)/100;
@@ -390,6 +429,9 @@ function exitPos(px,why){
   if(remaining()<MINRISK){G.blown=true;end();}
 }
 function persist(){
+  if(cfg.mode==="sim"){var o=simGet();if(!o||o.status!=="active")return;
+    if(G.ended){o.open=null;}else if(G.started){o.open={session:G.d.session,realized:G.realized,risk:G.pos?G.pos.risk:0,n:G.trades.length,wins:G.trades.filter(function(t){return t.pnl>0;}).length};}
+    simSave(o);return;}
   if(cfg.mode!=="daily"||!G.started)return;
   var w=G.trades.filter(function(t){return t.pnl>0;}).length,best=G.trades.reduce(function(m,t){return Math.max(m,t.pnl);},-1e9);
   save({pnl:G.realized,trades:G.trades.length,wins:w,best:G.trades.length?best:0,blown:G.blown,final:G.ended,posted:(saved()||{}).posted||false,list:G.trades});
@@ -409,7 +451,7 @@ function enter(side){
   if(!G||G.ended||G.pos)return;
   if(G.i>=G.bars.length-1){msg("Session's over. No new trades.");return;}
   var risk=cfg.stop*PV*cfg.qty,rem=remaining();
-  if(risk>rem){msg("That trade risks "+usd(risk)+" but you only have "+usd(rem)+" left before the daily limit. Lower your size or tighten your stop.","warn");return;}
+  if(risk>rem){msg("That trade risks "+usd(risk)+" but you only have "+usd(rem)+" left before "+(cfg.mode==="sim"&&ddLeft()<=rem+0.01?"your max drawdown":"the daily limit")+". Lower your size or tighten your stop.","warn");return;}
   var e=bar()[4]+(side>0?0.25:0);G.started=true;
   G.pos={side:side,qty:cfg.qty,entry:e,stop:e-side*cfg.stop,tgt:cfg.r?e+side*cfg.stop*cfg.r:null,at:G.i,risk:risk};
   G.marks.push({i:G.i,px:e,t:side>0?"b":"s"});persist();render();
@@ -424,7 +466,7 @@ function end(){
 function msg(t,kind){$("posLine").className="posline "+(kind||"");$("posLine").innerHTML=t;}
 function render(){
   if(!G)return;var d=G.d,b=bar(),open=G.i>=d.startIdx;
-  $("gTitle").textContent=(cfg.mode==="daily"?"Daily Challenge":"Practice")+" · Session #"+d.session;
+  var so=cfg.mode==="sim"?simGet():null;$("gTitle").textContent=(cfg.mode==="daily"?"Daily Challenge":cfg.mode==="sim"?"Sim Challenge · Day "+((so?so.days.length:0)+(G.ended&&!G.restored?0:1)):"Practice")+" · Session #"+d.session;
   $("gSub").textContent=" · "+(G.ended?d.weekday+" morning":"hidden date")+" · NQ 5-min";
   $("gTime").textContent=fmtT(b[0]+5)+" PT";
   var left=Math.max(0,(G.bars.length-1-G.i)*5);$("gLeft").textContent=G.ended?"Session over":(open?Math.floor(left/60)+"h "+left%60+"m left":"Premarket · open at 6:30a");
@@ -439,7 +481,7 @@ function render(){
   $("bBuy").disabled=!!G.pos||G.ended;$("bSell").disabled=!!G.pos||G.ended;$("bClose").classList.toggle("hide",!G.pos);
   ["bClose","bStep","bPlay","qm","qp"].forEach(function(id){$(id).disabled=G.ended;});
   if(G.pos){var p=G.pos;msg((p.side>0?'<b class="pos">LONG</b>':'<b class="neg">SHORT</b>')+' '+p.qty+' MNQ @ '+p.entry.toFixed(2)+' · stop '+p.stop.toFixed(2)+(p.tgt!=null?' · target '+p.tgt.toFixed(2):' · no target'));}
-  else if(G.ended)msg(G.blown?'<b class="neg">Daily loss limit hit.</b> Account is done for today.':"Session complete.");
+  else if(G.ended)msg(G.blown?(cfg.mode==="sim"&&ddLeft()<MINRISK?'<b class="neg">Max drawdown hit.</b> Challenge over.':'<b class="neg">Daily loss limit hit.</b> '+(cfg.mode==="sim"?"Done for this day.":"Account is done for today.")):"Session complete.");
   else if(!G.trades.length)msg("Flat. Set your size and stop, then pick a side. Price so far: "+b[4].toFixed(2));
   else{var t=G.trades[G.trades.length-1];msg("Flat. Last trade: "+(t.side>0?"long":"short")+" closed at "+t.why+" for <b class=\""+cls(t.pnl)+"\">"+usd(t.pnl,true)+"</b>.");}
   drawChart();
@@ -550,6 +592,7 @@ function retheme(){if(!CH)return;var c=tvColors();CH.applyOptions({layout:{backg
 function grade(pnl,blown,n){if(blown)return["F","Hit the daily loss limit. Size down and wait for cleaner setups."];if(!n)return["–","No trades. Sitting out is a position, but the Gym is for reps."];
   if(pnl>=500)return["A","Strong session. Protect it: this is where traders give it back."];if(pnl>=200)return["B","Solid, green and controlled."];if(pnl>=0)return["C","Green is green. Look for one more clean setup next time."];return["D","Red, but you lived to fight another day. Review your entries."];}
 function finish(restored){
+  if(cfg.mode==="sim"){simFinish(restored);return;}
   var t=G.trades,w=t.filter(function(x){return x.pnl>0;}).length,best=t.length?Math.max.apply(null,t.map(function(x){return x.pnl;})):0;
   var n=t.length,gr=grade(G.realized,G.blown,n),over=n>8?'<p class="warn">⚠️ '+n+' trades in 2 hours is a lot. Overtrading is how accounts die.</p>':"";
   var s=saved(),posted=s&&s.posted;
@@ -568,6 +611,42 @@ function finish(restored){
   if($("bGoPractice"))$("bGoPractice").onclick=function(){setMode("practice");};
   if($("bAgain"))$("bAgain").onclick=load;
   if(!restored)$("result").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function simFinish(restored){
+  var o=simGet();if(!o)return;
+  if(!restored&&o.status==="active"&&G&&G.ended&&!G.simDone){G.simDone=true;var t=G.trades,w=t.filter(function(x){return x.pnl>0;}).length,best=t.length?Math.max.apply(null,t.map(function(x){return x.pnl;})):0;
+    o.open=null;o.days.push({pnl:G.realized,n:t.length,wins:w,best:best,session:G.d.session,blown:G.blown});simSettle(o);simSave(o);}
+  renderSim();var d=o.days[o.days.length-1]||{pnl:0,n:0};
+  if(o.status!=="active"){simEndCard(o,d);return;}
+  var prof=simTotal(o),need=[];if(prof<SIM.target)need.push(usd(SIM.target-prof)+" more profit");if(o.days.length<SIM.minDays)need.push((SIM.minDays-o.days.length)+" more day"+(SIM.minDays-o.days.length===1?"":"s"));
+  if(prof>=SIM.target&&simBest(o)>prof*SIM.cons)need.push("a smaller best day vs. total (consistency: best day ≤ "+Math.round(SIM.cons*100)+"% of profit)");
+  var h='<div class="rtop"><div class="gr g'+(d.pnl>0?"B":d.pnl<0?"D":"C")+'">'+o.days.length+'</div><div><b>Day '+o.days.length+' complete: <span class="'+cls(d.pnl)+'">'+usd(d.pnl,true)+'</span></b><p>Challenge total '+usd(prof,true)+'. Still need: '+need.join(", ")+'.</p></div></div>'+
+    '<button class="btnx pri" id="bSimNext">Start Day '+(o.days.length+1)+' →</button>';
+  $("result").innerHTML=h;$("result").classList.remove("hide");$("bSimNext").onclick=load;
+  if(!restored)$("result").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function simEndCard(o){
+  var prof=simTotal(o),n=o.days.length,wins=o.days.filter(function(d){return d.pnl>0;}).length,h;
+  if(o.status==="passed")h='<div class="rtop"><div class="gr gA">✓</div><div><b>You passed the Bear Squad Sim Challenge 🎉</b><p>+'+usd(prof)+' over '+n+' days, '+wins+' green. That took discipline. Screenshot this and share it in the Discord.</p></div></div>'+
+    '<div class="simcert"><span>BEAR SQUAD · SIM CHALLENGE</span><b>PASSED</b><em>$50K sim account · '+usd(prof,true)+' · '+n+' days · '+(o.passed||todayPT())+'</em><small>Simulated trading with fake money. Not a funded account.</small></div>';
+  else h='<div class="rtop"><div class="gr gF">✕</div><div><b>Challenge failed</b><p>'+esc(o.reason||"")+' Final: '+usd(prof,true)+' over '+n+' day'+(n===1?"":"s")+'. Every funded trader has blown evals. Reset and run it back.</p></div></div>';
+  h+='<div class="tlist">'+o.days.map(function(d,k){return '<div><span>Day '+(k+1)+' · '+d.n+' trades'+(d.left?' <em>(left mid-trade, counted as stopped)</em>':'')+(d.blown?' <em>(limit hit)</em>':'')+'</span><b class="'+cls(d.pnl)+'">'+usd(d.pnl,true)+'</b></div>';}).join("")+'</div>'+
+    '<button class="btnx pri" id="bSimNew">Start a new Sim Challenge</button>';
+  $("result").innerHTML=h;$("result").classList.remove("hide");
+  $("bSimNew").onclick=function(){simNew();load();};
+}
+function renderSim(){var el=$("simCard");if(!el)return;if(cfg.mode!=="sim"){el.classList.add("hide");return;}
+  var o=simGet()||simNew(),prof=simTotal(o),bal=START+prof,fl=simFloor(o),best=simBest(o),pct=Math.max(0,Math.min(100,prof/SIM.target*100));
+  var consOk=prof<=0||best<=prof*SIM.cons;
+  el.innerHTML='<div class="simh"><b>🎯 Sim Challenge</b><span class="tag">'+(o.status==="active"?"Day "+(o.days.length+1):o.status==="passed"?"PASSED":"FAILED")+'</span><button class="lnk" id="bSimReset">Reset</button></div>'+
+    '<div class="simbar"><i style="width:'+pct.toFixed(0)+'%"></i></div>'+
+    '<div class="simgrid"><div><small>Profit</small><b class="'+cls(prof)+'">'+usd(prof,true)+'</b><em>target +'+usd(SIM.target)+'</em></div>'+
+    '<div><small>Balance</small><b>'+usd(bal)+'</b><em>fails below '+usd(fl)+'</em></div>'+
+    '<div><small>Days</small><b>'+o.days.length+' / '+SIM.minDays+'</b><em>minimum to pass</em></div>'+
+    '<div><small>Best day</small><b class="'+(consOk?"":"neg")+'">'+(prof>0?Math.round(best/prof*100)+'%':'–')+'</b><em>of profit · max '+Math.round(SIM.cons*100)+'%</em></div></div>'+
+    '<details class="simrules"><summary>Rules</summary><ul><li>$50K simulated account. Fake money, real discipline.</li><li>Pass: +$3,000 profit, at least 5 trading days, and no single day over 40% of total profit.</li><li>Fail: balance touches the $2,000 trailing drawdown. It trails your best end-of-day balance and locks at $50,000 once you\'re up $2,000.</li><li>$1,000 daily loss limit ends that day, not the challenge.</li><li>Every day is a different hidden NQ morning. Leaving mid-trade counts that trade as stopped out.</li></ul></details>';
+  el.classList.remove("hide");
+  $("bSimReset").onclick=function(){if(o.days.length&&!window.confirm("Reset your Sim Challenge? Progress will be lost."))return;simNew();load();};
 }
 function postScore(){
   var s=saved();if(!s||!user||!sb)return;var b=$("bPost");b.disabled=true;b.textContent="Posting…";
@@ -594,7 +673,7 @@ function loadLb(){
 /* ---------- controls ---------- */
 function stop(){if(timer){clearInterval(timer);timer=null;}$("bPlay").textContent="▶ Play";}
 function togglePlay(){if(timer){stop();return;}if(!G||G.ended)return;timer=setInterval(step,cfg.speed);$("bPlay").textContent="❚❚ Pause";}
-function setMode(m){cfg.mode=m;document.querySelectorAll("#sMode button").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-v")===m);});load();}
+function setMode(m){cfg.mode=m;renderSim();document.querySelectorAll("#sMode button").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-v")===m);});load();}
 function seg(id,key,num){$(id).querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){cfg[key]=num?+b.getAttribute("data-v"):b.getAttribute("data-v");$(id).querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});if(key==="speed"&&timer){stop();togglePlay();}render();});});}
 document.querySelectorAll("#sMode button").forEach(function(b){b.addEventListener("click",function(){setMode(b.getAttribute("data-v"));});});
 $("sLb").querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){lbMode=b.getAttribute("data-v");$("sLb").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b);});loadLb();});});
@@ -610,6 +689,7 @@ document.addEventListener("click",function(e){if(!$("indMenu").contains(e.target
 renderAcct();
 if(sb){sb.auth.getSession().then(function(r){var s=r.data&&r.data.session;user=s?s.user:null;renderAcct();if(G&&G.ended)finish(true);});
   sb.auth.onAuthStateChange(function(ev,s){user=s?s.user:null;renderAcct();});}
+if(location.hash==="#sim"){cfg.mode="sim";document.querySelectorAll("#sMode button").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-v")==="sim");});}
 load();loadLb();setInterval(loadLb,120000);
 })();
 </script>
