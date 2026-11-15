@@ -161,12 +161,19 @@ Deno.serve(async (req) => {
     if (days.length < 8) return json({ error: "not enough sessions" }, 503);
     const today = parts(Date.now() / 1000).date;
     let idx: number;
-    if (mode === "daily") {
-      const pool = days.length - 3; // skip the most recent 3 sessions
-      idx = hash("bsq-gym-" + today) % pool;
+    // Recent sessions have real 1-minute candles (our nq_1m library), so the Daily Challenge
+    // and Practice draw from the last 20 sessions. Sim keeps the full range (no "recent" flag).
+    const RECENT = Math.min(20, days.length);
+    if (mode === "daily" && today < "2026-11-16") {
+      idx = hash("bsq-gym-" + today) % (days.length - 3); // keep today's challenge the same for everyone
+    } else if (mode === "daily") {
+      const pool = Math.max(1, RECENT - 3); // skip the most recent 3 sessions
+      idx = days.length - RECENT + (hash("bsq-gym-" + today) % pool);
     } else {
-      const i = parseInt(u.searchParams.get("i") || "0", 10);
-      idx = ((isNaN(i) ? 0 : i) % days.length + days.length) % days.length;
+      const i = parseInt(u.searchParams.get("i") || "0", 10), ii = isNaN(i) ? 0 : Math.abs(i);
+      idx = u.searchParams.get("recent") === "1"
+        ? days.length - RECENT + (ii % RECENT)
+        : ((isNaN(i) ? 0 : i) % days.length + days.length) % days.length;
     }
     const d = days[idx];
     const code = (hash("bsq-" + d.date) % 9000 + 1000).toString();
