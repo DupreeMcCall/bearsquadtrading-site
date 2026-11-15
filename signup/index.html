@@ -607,7 +607,7 @@ function go(){
     if(pass.length<8){msg("Password needs at least 8 characters.",1);return;}
     if(!$("aAge").checked){msg("Please confirm you're 18 or older.",1);return;}
     b.disabled=true;msg("Creating your account…");
-    sb.auth.signUp({email:email,password:pass,options:{data:{first_name:name,age_confirmed:true},emailRedirectTo:location.origin+"/journal/"}}).then(function(r){b.disabled=false;
+    sb.auth.signUp({email:email,password:pass,options:{data:{first_name:name,age_confirmed:true},emailRedirectTo:location.origin+"/signup/"+(next?"?next="+encodeURIComponent(next):"")}}).then(function(r){b.disabled=false;
       if(r.error){msg(r.error.message,1);return;}
       kit(name,email);try{localStorage.setItem("bs_joined","1");}catch(e){}
       justDid=true;
