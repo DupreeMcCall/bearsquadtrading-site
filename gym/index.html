@@ -488,7 +488,7 @@ function msg(t,kind){$("posLine").className="posline "+(kind||"");$("posLine").i
 function render(){
   if(!G)return;var d=G.d,b=bar(),open=G.i>=d.startIdx;
   var so=cfg.mode==="sim"?simGet():null;$("gTitle").textContent=(cfg.mode==="daily"?"Daily Challenge":cfg.mode==="sim"?"Sim Challenge · Day "+((so?so.days.length:0)+(G.ended&&!G.restored?0:1)):"Practice")+" · Session #"+d.session;
-  $("gSub").textContent=" · "+(G.ended?d.weekday+" morning":"hidden date")+" · NQ 5-min";
+  $("gSub").textContent=(G.ended?d.weekday+" morning":"hidden date")+" · NQ 5-min";
   $("gTime").textContent=fmtT(b[0]+5)+" PT";
   var left=Math.max(0,(G.bars.length-1-G.i)*5);$("gLeft").textContent=G.ended?"Session over":(open?Math.floor(left/60)+"h "+left%60+"m left":"Premarket · open at 6:30a");
   var op=openPnl(),bal=START+G.realized+op;
@@ -736,7 +736,7 @@ function apply(){
     var t=a.textContent.replace(/\s+/g," ").trim();
     if(/^(Sign in|Log in)$/i.test(t)){
       var svg=a.querySelector("svg");a.textContent="";if(svg)a.appendChild(svg);
-      a.appendChild(document.createTextNode(fn));a.href="/signup/";a.title="Your account";
+      a.appendChild(document.createTextNode(svg?fn:"👤 "+fn));a.href="/signup/";a.title="Your account";
     }else{
       a.href="/gym/";
       var dl=a.querySelector(".dl"),ml=a.querySelector(".ml");
@@ -746,7 +746,7 @@ function apply(){
     }
   });
 }
-apply();window.addEventListener("storage",function(e){if(e.key&&e.key.indexOf("auth-token")>-1)location.reload();});
+apply();var was=!!sess();setInterval(function(){if(!!sess()!==was){was=!was;if(was)apply();else location.reload();}},2000);window.addEventListener("storage",function(e){if(e.key&&e.key.indexOf("auth-token")>-1)location.reload();});
 })();
 </script>
 </body>
