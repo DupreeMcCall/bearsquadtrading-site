@@ -488,7 +488,7 @@ function apply(){
     var t=a.textContent.replace(/\s+/g," ").trim();
     if(/^(Sign in|Log in)$/i.test(t)){
       var svg=a.querySelector("svg");a.textContent="";if(svg)a.appendChild(svg);
-      a.appendChild(document.createTextNode(fn));a.href="/signup/";a.title="Your account";
+      a.appendChild(document.createTextNode(svg?fn:"👤 "+fn));a.href="/signup/";a.title="Your account";
     }else{
       a.href="/gym/";
       var dl=a.querySelector(".dl"),ml=a.querySelector(".ml");
@@ -498,7 +498,7 @@ function apply(){
     }
   });
 }
-apply();window.addEventListener("storage",function(e){if(e.key&&e.key.indexOf("auth-token")>-1)location.reload();});
+apply();var was=!!sess();setInterval(function(){if(!!sess()!==was){was=!was;if(was)apply();else location.reload();}},2000);window.addEventListener("storage",function(e){if(e.key&&e.key.indexOf("auth-token")>-1)location.reload();});
 })();
 </script>
 </body>
