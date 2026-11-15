@@ -126,7 +126,7 @@ html[data-theme="light"] .game{--tvbg:#ffffff;--tvpanel:#f0f3fa;--tvline:#e0e3eb
 .tvind{margin-left:auto;border:1px solid var(--tvline);background:var(--tvpanel);color:var(--tvtext);border-radius:4px;padding:4px 9px;font:600 12px -apple-system,BlinkMacSystemFont,"Trebuchet MS",Roboto,sans-serif;cursor:pointer;white-space:nowrap}
 .tvind i{font-style:italic;font-family:Georgia,serif;margin-right:3px}
 .tvind:hover{border-color:var(--tvblue)}
-.indmenu{position:absolute;right:8px;top:40px;z-index:20;background:var(--tvbg);border:1px solid var(--tvline);border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.35);padding:8px 4px;width:250px;max-width:calc(100% - 16px)}
+.indmenu{position:absolute;right:8px;top:40px;z-index:20;background:var(--tvbg);border:1px solid var(--tvline);border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.35);padding:8px 4px;width:270px;max-width:calc(100% - 16px)}
 .indmenu .imh{font:700 11px -apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--tvmute);padding:4px 10px 6px}
 .indmenu label{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:4px;cursor:pointer;font-size:13.5px;color:var(--tvtext);flex-wrap:wrap}
 .indmenu label:hover{background:var(--tvpanel)}
@@ -134,6 +134,19 @@ html[data-theme="light"] .game{--tvbg:#ffffff;--tvpanel:#f0f3fa;--tvline:#e0e3eb
 .indmenu label i{width:14px;height:3px;border-radius:2px;display:inline-block}
 .indmenu .lvi{border-top:2px dotted #787b86;height:0;background:none}
 .indmenu em{font-style:normal;font-size:11px;color:var(--tvmute);width:100%;padding-left:45px;margin-top:-3px}
+.indmenu{max-height:70vh;overflow:auto}
+.indmenu .erow{display:flex;align-items:center;gap:7px;padding:5px 10px;font-size:13.5px;color:var(--tvtext)}
+.indmenu .erow span{color:var(--tvmute);font-size:12px}
+.indmenu input[type=color]{width:22px;height:22px;padding:0;border:1px solid var(--tvline);border-radius:4px;background:none;cursor:pointer}
+.indmenu input[type=number]{width:62px;padding:5px 6px;border:1px solid var(--tvline);border-radius:4px;background:var(--tvpanel);color:var(--tvtext);font:600 13px -apple-system,BlinkMacSystemFont,sans-serif}
+.indmenu .edel{margin-left:auto;background:none;border:0;color:var(--tvmute);font-size:18px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:4px}
+.indmenu .edel:hover{color:#F23645;background:var(--tvpanel)}
+.indmenu .eadd{display:flex;gap:6px;padding:6px 10px 4px}
+.indmenu .eadd input{flex:1;width:auto}
+.indmenu .eadd button{background:#2962FF;color:#fff;border:0;border-radius:4px;padding:6px 10px;font:600 12.5px -apple-system,BlinkMacSystemFont,sans-serif;cursor:pointer;white-space:nowrap}
+.indmenu .equick{display:flex;flex-wrap:wrap;gap:4px;padding:2px 10px 6px}
+.indmenu .equick button{background:var(--tvpanel);color:var(--tvtext);border:1px solid var(--tvline);border-radius:4px;padding:3px 7px;font:600 11.5px -apple-system,BlinkMacSystemFont,sans-serif;cursor:pointer}
+.indmenu .equick button:hover{border-color:#2962FF}
 .indmenu .imn{font-size:11px;color:var(--tvmute);line-height:1.45;padding:6px 10px 2px;border-top:1px solid var(--tvline);margin-top:4px}
 .tvleg{display:flex;gap:12px;flex-wrap:wrap;padding:4px 10px;font:11.5px -apple-system,BlinkMacSystemFont,"Trebuchet MS",Roboto,sans-serif;border-bottom:1px solid var(--tvline);min-height:0}
 .tvleg:empty{display:none}
@@ -348,10 +361,32 @@ function tvColors(){var light=document.documentElement.getAttribute("data-theme"
   return light?{bg:"#ffffff",text:"#131722",grid:"#f0f3fa",border:"#e0e3eb",cross:"#9598a1",volU:"rgba(8,153,129,.35)",volD:"rgba(242,54,69,.35)"}
               :{bg:"#131722",text:"#d1d4dc",grid:"#1e222d",border:"#2a2e39",cross:"#758696",volU:"rgba(8,153,129,.45)",volD:"rgba(242,54,69,.45)"};}
 var UP="#089981",DN="#F23645",BLUE="#2962FF";
-var IND={e9:{on:false,c:"#FF9800",n:"EMA 9"},e21:{on:false,c:"#AB47BC",n:"EMA 21"},e50:{on:false,c:"#26C6DA",n:"EMA 50"},e200:{on:false,c:"#A1887F",n:"EMA 200"},vwap:{on:false,c:"#FBC02D",n:"VWAP"}};
+var ECOL=["#FF9800","#AB47BC","#26C6DA","#A1887F","#EF5350","#66BB6A","#42A5F5","#EC407A"],EMAX=8,EID=0,ECACHE={};
+var EMAS=[],VW={on:false,c:"#FBC02D"};
 var KEYLV={on:false},LVN={pdh:"PDH",pdl:"PDL",pdc:"PDC",onh:"ONH",onl:"ONL"},LS={},LVL=[];
-try{var sv=JSON.parse(localStorage.getItem("bs_gym_ind")||"null");if(sv){Object.keys(IND).forEach(function(k){if(k in sv)IND[k].on=!!sv[k];});if("lv" in sv)KEYLV.on=!!sv.lv;}}catch(e){}
-function saveInd(){try{var o={lv:KEYLV.on};Object.keys(IND).forEach(function(k){o[k]=IND[k].on;});localStorage.setItem("bs_gym_ind",JSON.stringify(o));}catch(e){}}
+function clampP(v){v=Math.round(+v);return isFinite(v)?Math.min(500,Math.max(1,v)):null;}
+function addEma(p,c,on){p=clampP(p);if(!p||EMAS.length>=EMAX)return null;var used=EMAS.map(function(e){return e.c;});
+  var e={id:++EID,p:p,c:c||ECOL.filter(function(x){return used.indexOf(x)<0;})[0]||ECOL[EID%ECOL.length],on:on!==false};EMAS.push(e);return e;}
+try{var sv=JSON.parse(localStorage.getItem("bs_gym_ind")||"null");if(sv){
+  if(Array.isArray(sv.emas))sv.emas.forEach(function(e){addEma(e.p,e.c,!!e.on);});
+  else[9,21,50,200].forEach(function(n){if(sv["e"+n])addEma(n);});
+  VW.on=!!sv.vwap;KEYLV.on=!!sv.lv;}}catch(e){}
+function saveInd(){try{localStorage.setItem("bs_gym_ind",JSON.stringify({lv:KEYLV.on,vwap:VW.on,emas:EMAS.map(function(e){return {p:e.p,c:e.c,on:e.on};})}));}catch(e){}}
+// EMA for any period, aligned to the session bars. Uses prior closes from the server for warm-up,
+// so each value only depends on candles up to that bar (no look-ahead).
+function emaArr(p){if(!G||!G.bars)return null;var key=G.d.session+"|"+cfg.mode+"|"+p;if(ECACHE[key])return ECACHE[key];
+  var cl=G.bars.map(function(b){return b[4];}),out;
+  if(!G.d.pre&&G.d.ind&&G.d.ind["e"+p])out=G.d.ind["e"+p];
+  else{var src=(G.d.pre||[]).concat(cl),k=2/(p+1),e=src[0],all=[];
+    src.forEach(function(c,i){e=i?c*k+e*(1-k):c;all.push(Math.round(e*100)/100);});out=all.slice(src.length-cl.length);}
+  return ECACHE[key]=out;}
+function lineDefs(){var a=EMAS.map(function(e){return {k:"m"+e.id,c:e.c,w:1,on:e.on,n:"EMA "+e.p,arr:e.on?emaArr(e.p):null};});
+  a.push({k:"vwap",c:VW.c,w:2,on:VW.on,n:"VWAP",arr:G&&G.d.ind?G.d.ind.vwap:null});return a;}
+function syncLines(){if(!CH)return;var defs=lineDefs(),keep={};
+  defs.forEach(function(d){keep[d.k]=1;if(!LS[d.k])LS[d.k]=CH.addSeries(LW.LineSeries,{priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false,autoscaleInfoProvider:function(){return null;}});
+    LS[d.k].applyOptions({color:d.c,lineWidth:d.w,visible:d.on});
+    if(G&&G.bars){var vis=G.bars.slice(0,G.i+1);LS[d.k].setData(d.on&&d.arr?vis.map(function(b,i){return {time:tOf(b[0]),value:d.arr[i]};}):[]);}});
+  Object.keys(LS).forEach(function(k){if(!keep[k]){CH.removeSeries(LS[k]);delete LS[k];}});}
 function initChart(){
   if(CH||!LW)return;var c=tvColors(),el=$("chart");
   CH=LW.createChart(el,{autoSize:true,layout:{background:{type:"solid",color:c.bg},textColor:c.text,fontFamily:"-apple-system,BlinkMacSystemFont,Trebuchet MS,Roboto,Ubuntu,sans-serif",fontSize:11,attributionLogo:true},
@@ -364,20 +399,38 @@ function initChart(){
   VS=CH.addSeries(LW.HistogramSeries,{priceFormat:{type:"volume"},priceScaleId:"",lastValueVisible:false,priceLineVisible:false});
   VS.priceScale().applyOptions({scaleMargins:{top:0.82,bottom:0}});
   MK=LW.createSeriesMarkers(CS,[]);
-  Object.keys(IND).forEach(function(k){LS[k]=CH.addSeries(LW.LineSeries,{color:IND[k].c,lineWidth:k==="vwap"?2:1,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false,visible:IND[k].on,autoscaleInfoProvider:function(){return null;}});});
   CH.subscribeCrosshairMove(function(p){var d=p&&p.seriesData&&p.seriesData.get(CS);legend(d?[0,d.open,d.high,d.low,d.close]:null);indLegend(d&&p.time!=null?G.bars.findIndex(function(b){return tOf(b[0])===p.time;}):null);});
 }
 function legend(b){if(!G)return;b=b||G.bars[G.i];var ch=b[4]-b[1],up=ch>=0,c=up?"pos2":"neg2";
   $("ohlc").innerHTML='O<b class="'+c+'">'+b[1].toFixed(2)+'</b> H<b class="'+c+'">'+b[2].toFixed(2)+'</b> L<b class="'+c+'">'+b[3].toFixed(2)+'</b> C<b class="'+c+'">'+b[4].toFixed(2)+'</b> <b class="'+c+'">'+(up?"+":"")+ch.toFixed(2)+'</b>';}
-function indLegend(i){if(!G||!G.d.ind){$("indLeg").innerHTML="";return;}if(i==null||i<0||i>G.i)i=G.i;
-  $("indLeg").innerHTML=Object.keys(IND).filter(function(k){return IND[k].on&&G.d.ind[k];}).map(function(k){return '<span style="color:'+IND[k].c+'">'+IND[k].n+' <b>'+G.d.ind[k][i].toFixed(2)+'</b></span>';}).join("");}
+function indLegend(i){if(!G||!G.bars){$("indLeg").innerHTML="";return;}if(i==null||i<0||i>G.i)i=G.i;
+  $("indLeg").innerHTML=lineDefs().filter(function(d){return d.on&&d.arr;}).map(function(d){return '<span style="color:'+d.c+'">'+d.n+' <b>'+d.arr[i].toFixed(2)+'</b></span>';}).join("");}
 function drawLevels(){LVL.forEach(function(l){CS.removePriceLine(l);});LVL=[];if(!KEYLV.on||!G.d.lv)return;var c=tvColors();
   Object.keys(LVN).forEach(function(k){var v=G.d.lv[k];if(v==null)return;LVL.push(CS.createPriceLine({price:v,color:k.indexOf("on")===0?"#7E57C2":"#787b86",lineWidth:1,lineStyle:1,axisLabelVisible:true,title:LVN[k]}));});}
 function indMenu(){
-  $("indMenu").innerHTML='<div class="imh">Indicators</div>'+Object.keys(IND).map(function(k){return '<label><input type="checkbox" data-k="'+k+'"'+(IND[k].on?" checked":"")+'><i style="background:'+IND[k].c+'"></i>'+IND[k].n+'</label>';}).join("")+
-   '<label><input type="checkbox" data-k="lv"'+(KEYLV.on?" checked":"")+'><i class="lvi"></i>Key levels <em>PDH · PDL · PDC · ONH · ONL</em></label><p class="imn">EMAs use the 5-minute chart. VWAP resets at the 3pm PT Globex open. Key levels: prior day high/low/close (6:30a–1p) and overnight high/low.</p>';
-  $("indMenu").querySelectorAll("input").forEach(function(cb){cb.addEventListener("change",function(){var k=cb.getAttribute("data-k");
-    if(k==="lv"){KEYLV.on=cb.checked;if(G)drawLevels();}else{IND[k].on=cb.checked;if(LS[k])LS[k].applyOptions({visible:cb.checked});}saveInd();indLegend();});});
+  var rows=EMAS.map(function(e){return '<div class="erow" data-id="'+e.id+'"><input type="checkbox" class="eon"'+(e.on?" checked":"")+' aria-label="Show EMA '+e.p+'">'+
+    '<input type="color" class="ecol" value="'+e.c+'" aria-label="Color"><span>EMA</span><input type="number" class="ep" min="1" max="500" step="1" inputmode="numeric" value="'+e.p+'" aria-label="EMA length">'+
+    '<button type="button" class="edel" aria-label="Remove EMA '+e.p+'">×</button></div>';}).join("");
+  $("indMenu").innerHTML='<div class="imh">Moving averages</div>'+(rows||'<p class="imn" style="border:0;margin:0;padding-top:0">No EMAs on the chart. Add any length you use.</p>')+
+   (EMAS.length<EMAX?'<div class="eadd"><input type="number" id="eNew" min="1" max="500" step="1" inputmode="numeric" placeholder="Length" aria-label="New EMA length"><button type="button" id="eAddB">+ Add EMA</button></div>'+
+     '<div class="equick">'+[8,9,10,20,21,34,50,100,200].map(function(n){return '<button type="button" data-p="'+n+'">'+n+'</button>';}).join("")+'</div>':'<p class="imn" style="border:0">Max '+EMAX+' EMAs.</p>')+
+   '<div class="imh" style="margin-top:6px">Other</div>'+
+   '<label><input type="checkbox" data-k="vwap"'+(VW.on?" checked":"")+'><i style="background:'+VW.c+'"></i>VWAP</label>'+
+   '<label><input type="checkbox" data-k="lv"'+(KEYLV.on?" checked":"")+'><i class="lvi"></i>Key levels <em>PDH · PDL · PDC · ONH · ONL</em></label><p class="imn">Everything here is optional and off by default. EMAs (1–500) use the 5-minute candles. VWAP resets at the 3pm PT Globex open. Key levels: prior day high/low/close (6:30a–1p) and overnight high/low.</p>';
+  var m=$("indMenu");
+  function changed(){saveInd();syncLines();indLegend();}
+  m.querySelectorAll(".erow").forEach(function(r){var e=EMAS.filter(function(x){return x.id===+r.getAttribute("data-id");})[0];
+    r.querySelector(".eon").addEventListener("change",function(){e.on=this.checked;changed();});
+    r.querySelector(".ecol").addEventListener("input",function(){e.c=this.value;changed();});
+    r.querySelector(".ep").addEventListener("change",function(){var p=clampP(this.value);if(!p){this.value=e.p;return;}e.p=p;this.value=p;changed();indMenu();});
+    r.querySelector(".edel").addEventListener("click",function(ev){ev.stopPropagation();EMAS=EMAS.filter(function(x){return x!==e;});changed();indMenu();});});
+  function add(p){if(addEma(p)){changed();indMenu();var n=$("eNew");if(n)n.focus();}}
+  if($("eAddB")){$("eAddB").addEventListener("click",function(ev){ev.stopPropagation();add($("eNew").value);});
+    $("eNew").addEventListener("keydown",function(ev){ev.stopPropagation();if(ev.key==="Enter")add(this.value);});
+    m.querySelectorAll(".equick button").forEach(function(b){b.addEventListener("click",function(ev){ev.stopPropagation();add(b.getAttribute("data-p"));});});}
+  m.querySelectorAll('label input[type=checkbox]').forEach(function(cb){cb.addEventListener("change",function(){var k=cb.getAttribute("data-k");
+    if(k==="lv"){KEYLV.on=cb.checked;if(G&&CS)drawLevels();}else if(k==="vwap")VW.on=cb.checked;changed();});});
+  m.querySelectorAll('input').forEach(function(x){x.addEventListener("keydown",function(ev){ev.stopPropagation();});});
 }
 function candleOf(b){return {time:tOf(b[0]),open:b[1],high:b[2],low:b[3],close:b[4]};}
 function volOf(b){var c=tvColors();return {time:tOf(b[0]),value:b[5],color:b[4]>=b[1]?c.volU:c.volD};}
@@ -385,10 +438,10 @@ function drawChart(){
   if(!LW){$("chart").innerHTML='<p class="mut sm" style="padding:16px">Chart failed to load. Refresh the page.</p>';return;}
   initChart();var key=G.d.session+"|"+cfg.mode;
   if(key!==drawnKey||G.i<drawnI){var vis=G.bars.slice(0,G.i+1);CS.setData(vis.map(candleOf));VS.setData(vis.map(volOf));drawnKey=key;drawnI=G.i;
-    Object.keys(IND).forEach(function(k){var arr=G.d.ind&&G.d.ind[k];LS[k].setData(arr?vis.map(function(b,i){return {time:tOf(b[0]),value:arr[i]};}):[]);});drawLevels();
+    syncLines();drawLevels();
     CH.timeScale().setVisibleLogicalRange({from:-1,to:G.bars.length+4});}
   else{for(var k=drawnI+1;k<=G.i;k++){CS.update(candleOf(G.bars[k]));VS.update(volOf(G.bars[k]));
-      Object.keys(IND).forEach(function(n){var arr=G.d.ind&&G.d.ind[n];if(arr)LS[n].update({time:tOf(G.bars[k][0]),value:arr[k]});});}drawnI=G.i;}
+      lineDefs().forEach(function(d){if(d.on&&d.arr&&LS[d.k])LS[d.k].update({time:tOf(G.bars[k][0]),value:d.arr[k]});});}drawnI=G.i;}
   PL.forEach(function(l){CS.removePriceLine(l);});PL=[];
   if(G.pos){var p=G.pos,lbl=(p.side>0?"Long ":"Short ")+p.qty;
     PL.push(CS.createPriceLine({price:p.entry,color:BLUE,lineWidth:2,lineStyle:0,axisLabelVisible:true,title:lbl}));
