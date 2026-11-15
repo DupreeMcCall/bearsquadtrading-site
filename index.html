@@ -390,6 +390,23 @@ header.nav.fx.mopen~.thmfab{display:none}
 .nextev .nd{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 0 4px rgba(232,41,59,.18)}
 .nextev:hover{border-color:var(--g3)}
 @media (max-width:560px){.nextev{font-size:12.5px}.trust{gap:8px 18px;font-size:12.5px}}
+
+.hsess{margin:30px auto 0;max-width:900px;text-align:left}
+.hsh{display:flex;align-items:center;gap:8px;font:600 12px "JetBrains Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:10px}
+.hsh em{font-style:normal;letter-spacing:.04em;text-transform:none;color:var(--mute2)}
+.hsg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.hsg>div{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--panel);min-width:0}
+.hsg>div.on{border-color:rgba(31,214,122,.55);background:rgba(31,214,122,.08);box-shadow:0 0 24px rgba(31,214,122,.12)}
+.hsg .r1{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hsg b{font-size:15px;font-weight:700;white-space:nowrap}
+.hsg .on b{color:var(--g1)}
+.hsg .st{font:700 10px "JetBrains Mono",monospace;letter-spacing:.12em;font-style:normal;padding:3px 7px;border-radius:6px;background:var(--panel2);color:var(--mute2);border:1px solid var(--line)}
+.hsg .st.on{color:#04130B;background:var(--g2);border-color:transparent}
+.hsg span{display:block;font:500 12.5px "JetBrains Mono",monospace;color:var(--mute);margin-top:6px}
+.hsg .cd{display:block;font:500 12.5px "JetBrains Mono",monospace;font-style:normal;color:var(--mute);margin-top:8px}
+.hsg .cd b{font-size:14px;color:var(--ink);font-family:"JetBrains Mono",monospace}
+.hsg .on .cd b{color:var(--g1)}
+@media (max-width:760px){.hsg{grid-template-columns:1fr 1fr}.hsg>div{padding:12px}.hsg b{font-size:14px}}
 </style>
 </head>
 <body>
@@ -403,7 +420,7 @@ header.nav.fx.mopen~.thmfab{display:none}
     </a>
     <nav class="menu" aria-label="Main">
       <div class="dd"><button type="button" class="ddb" aria-expanded="false">Features<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="ddp"><div class="ddg"><a class="mi " href="/gym/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"/></svg></span><span><b>The Gym</b><em>Replay a real NQ morning and trade it</em></span></a><a class="mi " href="/levels/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 20V10M9 20V4M14 20v-7M19 20V8"/></svg></span><span><b>Gamma Levels</b><em>Call Wall, Put Wall and Gamma Flip for NQ & ES</em></span></a><a class="mi " href="/data-center/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span><b>Data Center</b><em>When NQ & ES move, hour by hour</em></span></a><a class="mi " href="/calendar/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h2M14 14h2M8 17.5h2"/></svg></span><span><b>Economic Calendar</b><em>CPI, jobs, Fed and every US release, with countdowns</em></span></a><a class="mi " href="/journal/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span><b>Trade Journal</b><em>Calendar, stats and equity curve</em></span></a><a class="mi " href="/calculator/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/></svg></span><span><b>Trade Calculator</b><em>Stops, targets and R:R in dollars</em></span></a></div></div></div>
-      <div class="dd"><button type="button" class="ddb" aria-expanded="false">Resources<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="ddp"><div class="ddg"><a class="mi join" href="https://discord.gg/5qwtJXsFR4" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H6a2 2 0 0 1-2-2z"/></svg></span><span><b>Discord community</b><em>Premarket plans, news and trade reviews</em></span></a><a class="mi " href="/levels/#how"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/></svg></span><span><b>How to read gamma</b><em>What the walls and the flip mean</em></span></a><a class="mi " href="/data-center/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M5 19l1.4-1.4M17.6 6.4L19 5"/></svg></span><span><b>Market sessions</b><em>Asia, London and New York hours</em></span></a><a class="mi " href="https://www.instagram.com/bearsquadtrading/" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="4"/><circle cx="12" cy="12" r="3.5"/></svg></span><span><b>Instagram</b><em>Daily charts and recaps</em></span></a></div></div></div>
+      <div class="dd"><button type="button" class="ddb" aria-expanded="false">Community<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="ddp"><div class="ddg"><a class="mi join" href="https://discord.gg/5qwtJXsFR4" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H6a2 2 0 0 1-2-2z"/></svg></span><span><b>Discord</b><em>Premarket plans, news, live alerts</em></span></a><a class="mi " href="https://www.instagram.com/bearsquadtrading/" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1" fill="currentColor"/></svg></span><span><b>Instagram</b><em>@bearsquadtrading</em></span></a><a class="mi " href="https://www.tiktok.com/@bearsquadtrading" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.6 2.6 2.4 4.2 5 4.5"/></svg></span><span><b>TikTok</b><em>@bearsquadtrading</em></span></a><a class="mi " href="https://www.youtube.com/@bearsquadtrading" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9.2v5.6l4.8-2.8z" fill="currentColor"/></svg></span><span><b>YouTube</b><em>@bearsquadtrading</em></span></a><a class="mi " href="https://x.com/bearsquadtrades" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l16 16M20 4L4 20"/></svg></span><span><b>X</b><em>@bearsquadtrades</em></span></a></div></div></div>
       <a class="nl hot" href="/gym/">🏆 Daily Challenge</a>
       <a class="nl" href="/calendar/">Calendar</a>
     </nav>
@@ -416,7 +433,7 @@ header.nav.fx.mopen~.thmfab{display:none}
   </div>
   <div class="mnav" id="mnav">
     <details open><summary>Features</summary><a class="mi " href="/gym/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"/></svg></span><span><b>The Gym</b><em>Replay a real NQ morning and trade it</em></span></a><a class="mi " href="/levels/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 20V10M9 20V4M14 20v-7M19 20V8"/></svg></span><span><b>Gamma Levels</b><em>Call Wall, Put Wall and Gamma Flip for NQ & ES</em></span></a><a class="mi " href="/data-center/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span><b>Data Center</b><em>When NQ & ES move, hour by hour</em></span></a><a class="mi " href="/calendar/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h2M14 14h2M8 17.5h2"/></svg></span><span><b>Economic Calendar</b><em>CPI, jobs, Fed and every US release, with countdowns</em></span></a><a class="mi " href="/journal/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span><b>Trade Journal</b><em>Calendar, stats and equity curve</em></span></a><a class="mi " href="/calculator/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/></svg></span><span><b>Trade Calculator</b><em>Stops, targets and R:R in dollars</em></span></a></details>
-    <details><summary>Resources</summary><a class="mi join" href="https://discord.gg/5qwtJXsFR4" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H6a2 2 0 0 1-2-2z"/></svg></span><span><b>Discord community</b><em>Premarket plans, news and trade reviews</em></span></a><a class="mi " href="/levels/#how"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/></svg></span><span><b>How to read gamma</b><em>What the walls and the flip mean</em></span></a><a class="mi " href="/data-center/"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M5 19l1.4-1.4M17.6 6.4L19 5"/></svg></span><span><b>Market sessions</b><em>Asia, London and New York hours</em></span></a><a class="mi " href="https://www.instagram.com/bearsquadtrading/" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="4"/><circle cx="12" cy="12" r="3.5"/></svg></span><span><b>Instagram</b><em>Daily charts and recaps</em></span></a></details>
+    <details><summary>Community</summary><a class="mi join" href="https://discord.gg/5qwtJXsFR4" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H6a2 2 0 0 1-2-2z"/></svg></span><span><b>Discord</b><em>Premarket plans, news, live alerts</em></span></a><a class="mi " href="https://www.instagram.com/bearsquadtrading/" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1" fill="currentColor"/></svg></span><span><b>Instagram</b><em>@bearsquadtrading</em></span></a><a class="mi " href="https://www.tiktok.com/@bearsquadtrading" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.6 2.6 2.4 4.2 5 4.5"/></svg></span><span><b>TikTok</b><em>@bearsquadtrading</em></span></a><a class="mi " href="https://www.youtube.com/@bearsquadtrading" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9.2v5.6l4.8-2.8z" fill="currentColor"/></svg></span><span><b>YouTube</b><em>@bearsquadtrading</em></span></a><a class="mi " href="https://x.com/bearsquadtrades" target="_blank" rel="noopener"><span class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l16 16M20 4L4 20"/></svg></span><span><b>X</b><em>@bearsquadtrades</em></span></a></details>
     <a class="mrow hot" href="/gym/">🏆 Daily Challenge</a>
     
     <div class="mbtn"><a class="btn" href="/journal/#acct">Sign in</a><a class="btn pri" href="/journal/#acct">Get started for free</a></div>
@@ -450,7 +467,11 @@ header.nav.fx.mopen~.thmfab{display:none}
     </div>
   </div>
   <div class="ticker" aria-label="Market stats"><div class="track" id="tick"></div></div>
-<div class="wrap"><div class="trust">
+<div class="wrap"><div class="hsess">
+    <div class="hsh"><span class="live on"></span>Market sessions <em>· times in PT · live</em></div>
+    <div class="hsg" id="hSess"></div>
+  </div></div>
+  <div class="wrap"><div class="trust">
     <span><b>CBOE</b> options data</span><span><b>TradingView</b> charts</span><span><b>No download</b> · phone or desktop</span><span><b>Built by traders</b> for traders</span>
   </div></div>
 </section>
@@ -524,11 +545,11 @@ header.nav.fx.mopen~.thmfab{display:none}
 
 <section id="clock">
   <div class="wrap">
-    <div class="ctr"><span class="pill">Market clock</span><h2>Sessions &amp; volatility</h2><p>Live countdowns for every session, and how much NQ usually moves right now.</p></div>
+    <div class="ctr"><span class="pill">Market clock</span><h2>Sessions &amp; volatility</h2><p>How much NQ usually moves right now, hour by hour.</p></div>
     <div class="panel glow pulse" id="pulse">
       <div class="phead"><span class="ptitle"><span class="live" id="pLive"></span>Market pulse</span><span class="clock" id="pClock">--:--</span></div>
       <div class="status" id="pStatus">Loading…</div>
-      <div class="sess" id="pSess"></div>
+      
       <div class="pgrid">
         <div class="pm"><small id="pWinL">NQ this hour</small><strong id="pNq">–</strong><em id="pNqD">avg move</em></div>
         <div class="pm"><small>Volatility</small><strong id="pVol">–</strong><em id="pVolD">vs 2-yr average</em></div>
@@ -640,7 +661,7 @@ var WD=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 function minsUntil(t,tgWd,tgMin){var cur=WD.indexOf(t.wd)*1440+t.h*60+t.m,tg=tgWd*1440+tgMin,d=tg-cur;if(d<=0)d+=7*1440;return d;}
 function dur(m){var d=Math.floor(m/1440),h=Math.floor((m%1440)/60),mi=m%60;return (d?d+"d ":"")+(h||d?h+"h ":"")+mi+"m";}
 function nextRth(t){var best=1e9;for(var w=1;w<=5;w++){var d=minsUntil(t,w,390);if(d<best)best=d;}return best;}
-var SESS=[["Asia","4p–1a",[960,1440],[0,60]],["London","12a–8:30a",[0,510]],["New York","6:30a–1p",[390,780]]];
+var SESS=[["CME Futures","Sun 3p – Fri 2p",0],["Asia","4p – 1a",0],["London","12a – 8:30a",0],["New York","6:30a – 1p",0]];
 function inSess(m,s){for(var i=2;i<s.length;i++)if(m>=s[i][0]&&m<s[i][1])return true;return false;}
 function tick(){
   var t=pt(),m=t.h*60+t.m,o=open(t);
@@ -662,16 +683,17 @@ function tick(){
   $("pSpark").innerHTML=sp;$("tvBars").innerHTML=sp;$("tvNow").textContent=o&&t.h>=5&&t.h<=13?fmtT(t.h*60):"6–7a peak";
 }
 /* live session countdowns (PT minute-of-week windows) */
-var WIN={Asia:[0,1,2,3,4].map(function(d){return [d*1440+960,d*1440+1500];}),London:[1,2,3,4,5].map(function(d){return [d*1440,d*1440+510];}),"New York":[1,2,3,4,5].map(function(d){return [d*1440+390,d*1440+780];})};
+var WIN={"CME Futures":[0,1,2,3,4].map(function(d){return [d*1440+900,d*1440+1440+840];}),Asia:[0,1,2,3,4].map(function(d){return [d*1440+960,d*1440+1500];}),London:[1,2,3,4,5].map(function(d){return [d*1440,d*1440+510];}),"New York":[1,2,3,4,5].map(function(d){return [d*1440+390,d*1440+780];})};
 function hms(sec){if(sec>=86400){var d=Math.floor(sec/86400),hh=Math.floor(sec%86400/3600),mm=Math.floor(sec%3600/60);return d+"d "+hh+"h "+("0"+mm).slice(-2)+"m";}var h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return (h?h+"h ":"")+(h||m?("0"+m).slice(-2)+"m ":"")+("0"+s).slice(-2)+"s";}
 function sessTick(){
-  var t=pt(),nowS=(WD.indexOf(t.wd)*1440+t.h*60+t.m)*60+t.s;
-  $("pSess").innerHTML=SESS.map(function(s){
+  var t=pt(),nowS=(WD.indexOf(t.wd)*1440+t.h*60+t.m)*60+t.s,el=$("hSess");if(!el)return;
+  el.innerHTML=SESS.map(function(s){
     var ws=WIN[s[0]],on=null,next=null;
     ws.forEach(function(w){[0,10080].forEach(function(off){var a=(w[0]+off)*60,b=(w[1]+off)*60;
       if(nowS>=a&&nowS<b)on=b;if(a>nowS&&(next==null||a<next))next=a;});});
+    var st=on!=null?'<i class="st on">OPEN</i>':'<i class="st">CLOSED</i>';
     var txt=on!=null?'closes in <b>'+hms(on-nowS)+'</b>':'opens in <b>'+hms(next-nowS)+'</b>';
-    return '<div class="'+(on!=null?"on":"")+'"><b>'+s[0]+'</b><span>'+s[1]+'</span><i class="cd">'+txt+'</i></div>';
+    return '<div class="'+(on!=null?"on":"")+'"><div class="r1"><b>'+s[0]+'</b>'+st+'</div><span>'+s[1]+'</span><i class="cd">'+txt+'</i></div>';
   }).join("");
 }
 tick();setInterval(tick,30000);setInterval(sessTick,1000);
