@@ -147,6 +147,12 @@ html[data-theme="light"] .game{--tvbg:#ffffff;--tvpanel:#f0f3fa;--tvline:#e0e3eb
 .indmenu .equick{display:flex;flex-wrap:wrap;gap:4px;padding:2px 10px 6px}
 .indmenu .equick button{background:var(--tvpanel);color:var(--tvtext);border:1px solid var(--tvline);border-radius:4px;padding:3px 7px;font:600 11.5px -apple-system,BlinkMacSystemFont,sans-serif;cursor:pointer}
 .indmenu .equick button:hover{border-color:#2962FF}
+.indmenu .orow{display:flex;align-items:center;gap:8px;padding-right:10px}
+.indmenu .orow label{flex:1}
+.indmenu .orow.sub{padding:3px 10px 3px 33px;font-size:12.5px;color:var(--tvtext)}
+.indmenu .orow.sub span{flex:1}
+.indmenu .orow.sub em{display:block;padding:0;margin:0;width:auto}
+.indmenu .equick button.on{border-color:#2962FF;color:#5b8cff}
 .indmenu .imn{font-size:11px;color:var(--tvmute);line-height:1.45;padding:6px 10px 2px;border-top:1px solid var(--tvline);margin-top:4px}
 .tvleg{display:flex;gap:12px;flex-wrap:wrap;padding:4px 10px;font:11.5px -apple-system,BlinkMacSystemFont,"Trebuchet MS",Roboto,sans-serif;border-bottom:1px solid var(--tvline);min-height:0}
 .tvleg:empty{display:none}
@@ -405,10 +411,11 @@ function simS(){var o=simGet();if(!o)o=simNew();
   return o;}
 function simTotal(o){return o.days.reduce(function(a,d){return a+d.pnl;},0);}
 function simFloor(o){return Math.min(o.peak-SIM.dd,START);}
+function simTD(o){return o.days.filter(function(d){return d.n>0;}).length;}
 function simBest(o){return o.days.reduce(function(m,d){return Math.max(m,d.pnl);},0);}
 function simSettle(o){var bal=START+simTotal(o);o.peak=Math.max(o.peak,bal);
   if(bal-simFloor(o)<MINRISK){o.status="failed";o.reason="Hit the $"+SIM.dd.toLocaleString()+" trailing drawdown.";return;}
-  var prof=simTotal(o);if(prof>=SIM.target&&o.days.length>=SIM.minDays&&simBest(o)<=prof*SIM.cons){o.status="passed";o.passed=todayPT();}}
+  var prof=simTotal(o);if(prof>=SIM.target&&simTD(o)>=SIM.minDays&&simBest(o)<=prof*SIM.cons){o.status="passed";o.passed=todayPT();}}
 
 function todayPT(){return new Date().toLocaleDateString("en-CA",{timeZone:"America/Los_Angeles"});}
 function fmtT(m){var h=Math.floor(m/60),mi=m%60,ap=h<12?"a":"p",hh=h%12===0?12:h%12;return hh+":"+("0"+mi).slice(-2)+ap;}
@@ -515,15 +522,15 @@ function tvColors(){var light=document.documentElement.getAttribute("data-theme"
 var UP="#089981",DN="#F23645",BLUE="#2962FF";
 var ECOL=["#FF9800","#AB47BC","#26C6DA","#A1887F","#EF5350","#66BB6A","#42A5F5","#EC407A"],EMAX=8,EID=0,ECACHE={};
 var EMAS=[],VW={on:false,c:"#FBC02D"};
-var KEYLV={on:false},LVN={pdh:"PDH",pdl:"PDL",pdc:"PDC",onh:"ONH",onl:"ONL"},LS={},LVL=[];
+var KEYLV={on:false,c:"#787b86",oc:"#7E57C2"},LVN={pdh:"PDH",pdl:"PDL",pdc:"PDC",onh:"ONH",onl:"ONL"},LS={},LVL=[];
 function clampP(v){v=Math.round(+v);return isFinite(v)?Math.min(500,Math.max(1,v)):null;}
 function addEma(p,c,on){p=clampP(p);if(!p||EMAS.length>=EMAX)return null;var used=EMAS.map(function(e){return e.c;});
   var e={id:++EID,p:p,c:c||ECOL.filter(function(x){return used.indexOf(x)<0;})[0]||ECOL[EID%ECOL.length],on:on!==false};EMAS.push(e);return e;}
 try{var sv=JSON.parse(localStorage.getItem("bs_gym_ind")||"null");if(sv){
   if(Array.isArray(sv.emas))sv.emas.forEach(function(e){addEma(e.p,e.c,!!e.on);});
   else[9,21,50,200].forEach(function(n){if(sv["e"+n])addEma(n);});
-  VW.on=!!sv.vwap;KEYLV.on=!!sv.lv;}}catch(e){}
-function saveInd(){try{localStorage.setItem("bs_gym_ind",JSON.stringify({lv:KEYLV.on,vwap:VW.on,emas:EMAS.map(function(e){return {p:e.p,c:e.c,on:e.on};})}));}catch(e){}}
+  VW.on=!!sv.vwap;KEYLV.on=!!sv.lv;var hx=/^#[0-9a-f]{6}$/i;if(hx.test(sv.vwc||""))VW.c=sv.vwc;if(hx.test(sv.lvc||""))KEYLV.c=sv.lvc;if(hx.test(sv.lvoc||""))KEYLV.oc=sv.lvoc;}}catch(e){}
+function saveInd(){try{localStorage.setItem("bs_gym_ind",JSON.stringify({lv:KEYLV.on,vwap:VW.on,vwc:VW.c,lvc:KEYLV.c,lvoc:KEYLV.oc,emas:EMAS.map(function(e){return {p:e.p,c:e.c,on:e.on};})}));}catch(e){}}
 // EMA for any period, aligned to the session bars. Uses prior closes from the server for warm-up,
 // so each value only depends on candles up to that bar (no look-ahead).
 function emaArr(p){if(!G||!G.bars)return null;var key=G.d.session+"|"+cfg.mode+"|"+p;if(ECACHE[key])return ECACHE[key];
@@ -558,17 +565,19 @@ function legend(b){if(!G)return;b=b||G.bars[G.i];var ch=b[4]-b[1],up=ch>=0,c=up?
 function indLegend(i){if(!G||!G.bars){$("indLeg").innerHTML="";return;}if(i==null||i<0||i>G.i)i=G.i;
   $("indLeg").innerHTML=lineDefs().filter(function(d){return d.on&&d.arr;}).map(function(d){return '<span style="color:'+d.c+'">'+d.n+' <b>'+d.arr[i].toFixed(2)+'</b></span>';}).join("");}
 function drawLevels(){LVL.forEach(function(l){CS.removePriceLine(l);});LVL=[];if(!KEYLV.on||!G.d.lv)return;var c=tvColors();
-  Object.keys(LVN).forEach(function(k){var v=G.d.lv[k];if(v==null)return;LVL.push(CS.createPriceLine({price:v,color:k.indexOf("on")===0?"#7E57C2":"#787b86",lineWidth:1,lineStyle:1,axisLabelVisible:true,title:LVN[k]}));});}
+  Object.keys(LVN).forEach(function(k){var v=G.d.lv[k];if(v==null)return;LVL.push(CS.createPriceLine({price:v,color:k.indexOf("on")===0?KEYLV.oc:KEYLV.c,lineWidth:1,lineStyle:1,axisLabelVisible:true,title:LVN[k]}));});}
 function indMenu(){
   var rows=EMAS.map(function(e){return '<div class="erow" data-id="'+e.id+'"><input type="checkbox" class="eon"'+(e.on?" checked":"")+' aria-label="Show EMA '+e.p+'">'+
     '<input type="color" class="ecol" value="'+e.c+'" aria-label="Color"><span>EMA</span><input type="number" class="ep" min="1" max="500" step="1" inputmode="numeric" value="'+e.p+'" aria-label="EMA length">'+
     '<button type="button" class="edel" aria-label="Remove EMA '+e.p+'">×</button></div>';}).join("");
   $("indMenu").innerHTML='<div class="imh">Moving averages</div>'+(rows||'<p class="imn" style="border:0;margin:0;padding-top:0">No EMAs on the chart. Add any length you use.</p>')+
    (EMAS.length<EMAX?'<div class="eadd"><input type="number" id="eNew" min="1" max="500" step="1" inputmode="numeric" placeholder="Length" aria-label="New EMA length"><button type="button" id="eAddB">+ Add EMA</button></div>'+
-     '<div class="equick">'+[8,9,10,20,21,34,50,100,200].map(function(n){return '<button type="button" data-p="'+n+'">'+n+'</button>';}).join("")+'</div>':'<p class="imn" style="border:0">Max '+EMAX+' EMAs.</p>')+
+     '<div class="equick">'+[8,9,10,20,21,34,50,100,200].map(function(n){var has=EMAS.some(function(e){return e.p===n;});return '<button type="button" data-p="'+n+'"'+(has?' class="on"':'')+'>'+n+'</button>';}).join("")+'</div>':'<p class="imn" style="border:0">Max '+EMAX+' EMAs.</p>')+
    '<div class="imh" style="margin-top:6px">Other</div>'+
-   '<label><input type="checkbox" data-k="vwap"'+(VW.on?" checked":"")+'><i style="background:'+VW.c+'"></i>VWAP</label>'+
-   '<label><input type="checkbox" data-k="lv"'+(KEYLV.on?" checked":"")+'><i class="lvi"></i>Key levels <em>PDH · PDL · PDC · ONH · ONL</em></label><p class="imn">Everything here is optional and off by default. EMAs (1–500) use the 5-minute candles. VWAP resets at the 3pm PT Globex open. Key levels: prior day high/low/close (6:30a–1p) and overnight high/low.</p>';
+   '<div class="orow"><label><input type="checkbox" data-k="vwap"'+(VW.on?" checked":"")+'>VWAP</label><input type="color" class="ocol" data-c="vw" value="'+VW.c+'" aria-label="VWAP color" title="VWAP color"></div>'+
+   '<div class="orow"><label><input type="checkbox" data-k="lv"'+(KEYLV.on?" checked":"")+'>Key levels</label></div>'+
+   '<div class="orow sub"><span>Prior day <em>PDH · PDL · PDC</em></span><input type="color" class="ocol" data-c="lv" value="'+KEYLV.c+'" aria-label="Prior day levels color" title="Prior day levels color"></div>'+
+   '<div class="orow sub"><span>Overnight <em>ONH · ONL</em></span><input type="color" class="ocol" data-c="lvo" value="'+KEYLV.oc+'" aria-label="Overnight levels color" title="Overnight levels color"></div><p class="imn">Everything here is optional and off by default. EMAs (1–500) use the 5-minute candles. VWAP resets at the 3pm PT Globex open. Key levels: prior day high/low/close (6:30a–1p) and overnight high/low.</p>';
   var m=$("indMenu");
   function changed(){saveInd();syncLines();indLegend();}
   m.querySelectorAll(".erow").forEach(function(r){var e=EMAS.filter(function(x){return x.id===+r.getAttribute("data-id");})[0];
@@ -582,6 +591,8 @@ function indMenu(){
     m.querySelectorAll(".equick button").forEach(function(b){b.addEventListener("click",function(ev){ev.stopPropagation();add(b.getAttribute("data-p"));});});}
   m.querySelectorAll('label input[type=checkbox]').forEach(function(cb){cb.addEventListener("change",function(){var k=cb.getAttribute("data-k");
     if(k==="lv"){KEYLV.on=cb.checked;if(G&&CS)drawLevels();}else if(k==="vwap")VW.on=cb.checked;changed();});});
+  m.querySelectorAll('.ocol').forEach(function(ci){ci.addEventListener("click",function(ev){ev.stopPropagation();});ci.addEventListener("input",function(){var k=ci.getAttribute("data-c");
+    if(k==="vw")VW.c=ci.value;else if(k==="lv")KEYLV.c=ci.value;else KEYLV.oc=ci.value;if(k!=="vw"&&G&&CS)drawLevels();changed();});});
   m.querySelectorAll('input').forEach(function(x){x.addEventListener("keydown",function(ev){ev.stopPropagation();});});
 }
 function candleOf(b){return {time:tOf(b[0]),open:b[1],high:b[2],low:b[3],close:b[4]};}
@@ -639,9 +650,9 @@ function simFinish(restored){
     o.open=null;o.days.push({pnl:G.realized,n:t.length,wins:w,best:best,session:G.d.session,blown:G.blown});simSettle(o);simSave(o);}
   renderSim();var d=o.days[o.days.length-1]||{pnl:0,n:0};
   if(o.status!=="active"){simEndCard(o,d);return;}
-  var prof=simTotal(o),need=[];if(prof<SIM.target)need.push(usd(SIM.target-prof)+" more profit");if(o.days.length<SIM.minDays)need.push((SIM.minDays-o.days.length)+" more day"+(SIM.minDays-o.days.length===1?"":"s"));
+  var prof=simTotal(o),need=[];if(prof<SIM.target)need.push(usd(SIM.target-prof)+" more profit");var td=simTD(o);if(td<SIM.minDays)need.push((SIM.minDays-td)+" more trading day"+(SIM.minDays-td===1?"":"s"));
   if(prof>=SIM.target&&simBest(o)>prof*SIM.cons)need.push("a smaller best day vs. total (consistency: best day ≤ "+Math.round(SIM.cons*100)+"% of profit)");
-  var h='<div class="rtop"><div class="gr g'+(d.pnl>0?"B":d.pnl<0?"D":"C")+'">'+o.days.length+'</div><div><b>Day '+o.days.length+' complete: <span class="'+cls(d.pnl)+'">'+usd(d.pnl,true)+'</span></b><p>Challenge total '+usd(prof,true)+'. Still need: '+need.join(", ")+'.</p></div></div>'+
+  var h='<div class="rtop"><div class="gr g'+(d.pnl>0?"B":d.pnl<0?"D":"C")+'">'+o.days.length+'</div><div><b>Day '+o.days.length+' complete: <span class="'+cls(d.pnl)+'">'+usd(d.pnl,true)+'</span></b><p>'+(d.n===0?'No trades today, so this day doesn\'t count toward your '+SIM.minDays+' trading days. ':'')+'Challenge total '+usd(prof,true)+'. Still need: '+need.join(", ")+'.</p></div></div>'+
     '<button class="btnx pri" id="bSimNext">Start Day '+(o.days.length+1)+' →</button>';
   $("result").innerHTML=h;$("result").classList.remove("hide");$("bSimNext").onclick=load;
   if(!restored)$("result").scrollIntoView({behavior:"smooth",block:"start"});
@@ -651,7 +662,7 @@ function simEndCard(o){
   if(o.status==="passed")h='<div class="rtop"><div class="gr gA">✓</div><div><b>You passed the Bear Squad Sim Challenge 🎉</b><p>+'+usd(prof)+' over '+n+' days, '+wins+' green. That took discipline. Screenshot this and share it in the Discord.</p></div></div>'+
     '<div class="simcert"><span>BEAR SQUAD · SIM CHALLENGE</span><b>PASSED</b><em>$50K sim account · '+usd(prof,true)+' · '+n+' days · '+(o.passed||todayPT())+'</em><small>Paper trading account. Not a funded account.</small></div>';
   else h='<div class="rtop"><div class="gr gF">✕</div><div><b>Challenge failed</b><p>'+esc(o.reason||"")+' Final: '+usd(prof,true)+' over '+n+' day'+(n===1?"":"s")+'. Every funded trader has blown evals. Reset and run it back.</p></div></div>';
-  h+='<div class="tlist">'+o.days.map(function(d,k){return '<div><span>Day '+(k+1)+' · '+d.n+' trades'+(d.left?' <em>(left mid-trade, counted as stopped)</em>':'')+(d.blown?' <em>(limit hit)</em>':'')+'</span><b class="'+cls(d.pnl)+'">'+usd(d.pnl,true)+'</b></div>';}).join("")+'</div>'+
+  h+='<div class="tlist">'+o.days.map(function(d,k){return '<div><span>Day '+(k+1)+' · '+d.n+(d.n===1?' trade':' trades')+(d.left?' <em>(left mid-trade, counted as stopped)</em>':'')+(d.blown?' <em>(limit hit)</em>':'')+'</span><b class="'+cls(d.pnl)+'">'+usd(d.pnl,true)+'</b></div>';}).join("")+'</div>'+
     '<button class="btnx pri" id="bSimNew">Start a new Sim Challenge</button>';
   $("result").innerHTML=h;$("result").classList.remove("hide");
   $("bSimNew").onclick=function(){simNew();load();};
@@ -663,7 +674,7 @@ function renderSim(){var el=$("simCard");if(!el)return;if(cfg.mode!=="sim"){el.c
     '<div class="simbar"><i style="width:'+pct.toFixed(0)+'%"></i></div>'+
     '<div class="simgrid"><div><small>Profit</small><b class="'+cls(prof)+'">'+usd(prof,true)+'</b><em>target +'+usd(SIM.target)+'</em></div>'+
     '<div><small>Balance</small><b>'+usd(bal)+'</b><em>fails below '+usd(fl)+'</em></div>'+
-    '<div><small>Days</small><b>'+o.days.length+' / '+SIM.minDays+'</b><em>minimum to pass</em></div>'+
+    '<div><small>Trading days</small><b>'+simTD(o)+' / '+SIM.minDays+'</b><em>minimum to pass</em></div>'+
     '<div><small>Best day</small><b class="'+(consOk?"":"neg")+'">'+(prof>0?Math.round(best/prof*100)+'%':'–')+'</b><em>of profit · max '+Math.round(SIM.cons*100)+'%</em></div></div>'+
     '<p class="simsync" id="simSync"></p><details class="simrules"><summary>Rules</summary><ul><li>The point: build confidence and skill before you risk real money. Pass this consistently before paying for a real evaluation.</li><li>$50K paper account. Practice how you play: every rule is real.</li><li>Pass: +$3,000 profit, at least 5 trading days, and no single day over 40% of total profit.</li><li>Fail: balance touches the $2,000 trailing drawdown. It trails your best end-of-day balance and locks at $50,000 once you\'re up $2,000.</li><li>$1,000 daily loss limit ends that day, not the challenge.</li><li>Every day is a different hidden NQ morning. Leaving mid-trade counts that trade as stopped out.</li></ul></details>';
   el.classList.remove("hide");simSyncNote(simSynced?"ok":"");
@@ -683,11 +694,11 @@ function loadLb(){
   var day=todayPT(),wk=weekStart(),url;
   if(lbMode==="day"){$("lbDay").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric",timeZone:"America/Los_Angeles"})+" · Daily Challenge · resets midnight PT";
     url=BASE+"/rest/v1/gym_scores?day=eq."+day+"&select=name,pnl,trades,wins,blown&order=pnl.desc&limit=25";}
-  else{$("lbDay").textContent="Week of "+new Date(wk+"T12:00:00Z").toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"UTC"})+" · total P&L of daily challenges, Mon–Fri";
+  else{$("lbDay").textContent="Week of "+new Date(wk+"T12:00:00Z").toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"UTC"})+" · total Daily Challenge P&L this week";
     url=BASE+"/rest/v1/gym_weekly?week=eq."+wk+"&select=name,pnl,days,trades,wins&order=pnl.desc&limit=25";}
   fetch(url,H).then(function(r){return r.ok?r.json():[];}).then(function(rows){
     if(!rows.length){$("lb").innerHTML='<p class="mut sm">No scores yet '+(lbMode==="day"?"today":"this week")+'. Be the first on the board.</p>';return;}
-    $("lb").innerHTML='<div class="lbt">'+rows.map(function(r,i){var sub=lbMode==="day"?r.trades+' trades · '+Math.round(r.wins/Math.max(1,r.trades)*100)+'%':r.days+(r.days===1?' day':' days')+' · '+r.trades+' trades';
+    $("lb").innerHTML='<div class="lbt">'+rows.map(function(r,i){var sub=lbMode==="day"?r.trades+(r.trades===1?' trade · ':' trades · ')+Math.round(r.wins/Math.max(1,r.trades)*100)+'%':r.days+(r.days===1?' day':' days')+' · '+r.trades+(r.trades===1?' trade':' trades');
       return '<div class="lr'+(i<3?" top":"")+'"><span class="rk">'+(i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1)+'</span><span class="nm">'+esc(r.name)+(r.blown?' <em>blown</em>':'')+'</span><span class="wr">'+sub+'</span><b class="'+cls(+r.pnl)+'">'+usd(+r.pnl,true)+'</b></div>';}).join("")+'</div>';
   }).catch(function(){$("lb").innerHTML='<p class="mut sm">Leaderboard unavailable right now.</p>';});
 }
