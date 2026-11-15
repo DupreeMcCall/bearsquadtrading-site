@@ -258,7 +258,7 @@ var p=location.pathname;hd.querySelectorAll(".sh-mi").forEach(function(a){var h=
 <main>
 
   <h1>Trade Journal</h1>
-  <p class="lead">Log every trade and see your month at a glance. Create an account to save your journal and pick it up on any device.</p>
+  <p class="lead">Log every trade and see your month at a glance.<span id="leadAcct"> Create an account to save your journal and pick it up on any device.</span></p>
 
   <div class="card acct" id="acct">
     <div id="aGuest">
@@ -620,7 +620,7 @@ function showAuth(m){if(m==="signup"){location.href="/signup/?next=/journal/";re
   $("aPass").setAttribute("autocomplete",su?"new-password":"current-password");$("aMsg").textContent="";
   $("acct").scrollIntoView({behavior:"smooth",block:"start"});setTimeout(function(){(su?$("aName"):$("aEmail")).focus();},300);}
 function aMsg(t,bad){$("aMsg").textContent=t;$("aMsg").className="msg "+(bad?"neg":"pos");}
-function setUser(u){user=u||null;$("aGuest").classList.toggle("hide",!!user);$("aUser").classList.toggle("hide",!user);$("acct").classList.toggle("in",!!user);
+function setUser(u){user=u||null;var la=document.getElementById("leadAcct");if(la)la.style.display=user?"none":"";$("aGuest").classList.toggle("hide",!!user);$("aUser").classList.toggle("hide",!user);$("acct").classList.toggle("in",!!user);
   $("toolsCard").classList.toggle("hide",!user);if(user)$("uEmail").textContent=user.email||"";}
 function kitSubscribe(name,email){try{var f=new FormData();f.append("email_address",email);if(name)f.append("fields[first_name]",name);fetch(KIT_FORM,{method:"POST",mode:"no-cors",body:f});}catch(e){}}
 function goAuth(){
@@ -713,7 +713,7 @@ function apply(){
     var t=a.textContent.replace(/\s+/g," ").trim();
     if(/^(Sign in|Log in)$/i.test(t)){
       var svg=a.querySelector("svg");a.textContent="";if(svg)a.appendChild(svg);
-      a.appendChild(document.createTextNode(fn));a.href="/signup/";a.title="Your account";
+      a.appendChild(document.createTextNode(svg?fn:"👤 "+fn));a.href="/signup/";a.title="Your account";
     }else{
       a.href="/gym/";
       var dl=a.querySelector(".dl"),ml=a.querySelector(".ml");
@@ -723,7 +723,7 @@ function apply(){
     }
   });
 }
-apply();window.addEventListener("storage",function(e){if(e.key&&e.key.indexOf("auth-token")>-1)location.reload();});
+apply();var was=!!sess();setInterval(function(){if(!!sess()!==was){was=!was;if(was)apply();else location.reload();}},2000);window.addEventListener("storage",function(e){if(e.key&&e.key.indexOf("auth-token")>-1)location.reload();});
 })();
 </script>
 </body>
